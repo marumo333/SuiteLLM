@@ -30,3 +30,4 @@ Node.js 製のガバナンスハーネス。npm 依存パッケージは無い�
 - Cursor の `beforeShellExecution` ガード（`.cursor/hooks/pre-commit.mjs` → `scripts/lib/commit-guard.mjs`）は、**シェルコマンド文字列に `git config ... hooksPath` が含まれるだけで（読み取り目的でも）拒否する**。hooksPath を確認したいときは `.git/config` を読む（例: `grep hooksPath .git/config`）。同様に `git commit --no-verify` / `-n` も拒否される。
 - コミットメッセージは conventional prefix + 日本語主語が必須（`feat:` / `fix:` / `docs:` / `chore:` など）。英語のみの主語や prefix 無しは commit-msg hook に落とされる。`--no-verify` は禁止。
 - ルートの `AGENTS.md` は canon ではない（canon は `.claude/AGENTS.md`）。どのパスも Feature 票は要らない。
+- モデルのスラッグは生きている席だけ `cycle/model-routing.yaml` と skill に書く。起動しない verifier / reflector に `model:` は置かない。ゲートは族名と件数と effort を見る。並列実装の一覧はクラウドの実行面で、このリポジトリの席は増やさない（`docs/multi-agent-and-pins.md`）。
