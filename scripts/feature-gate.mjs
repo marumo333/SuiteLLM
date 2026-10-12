@@ -2,15 +2,36 @@
 /**
  * OPA の検査と契約、レビュー上限。Feature 票は使わない。
  * canon の一覧は opa test が検査する。差分の被覆には使わない。
+ * 子スクリプトは import.meta.url の隣。policy と契約と events の根は HARNESS_ROOT。
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureOpa } from './ensure-opa.mjs';
 
-const ROOT = process.env.HARNESS_ROOT || join(dirname(fileURLToPath(import.meta.url)), '..');
-const POLICY = process.env.OPA_POLICY_DIR || join(ROOT, 'policy');
+/**
+ * 検査ロジックの位置と、読むツリーの根を分ける。
+ * policy はデータ根の policy/。OPA_POLICY_DIR が無いとき、スクリプトの隣には固定しない。
+ * @param {string} scriptUrl
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function resolveGateLayout(scriptUrl, env = process.env) {
+	const scriptDir = dirname(fileURLToPath(scriptUrl));
+	const dataRoot = env.HARNESS_ROOT || join(scriptDir, '..');
+	const policy = env.OPA_POLICY_DIR || join(dataRoot, 'policy');
+	return {
+		scriptDir,
+		dataRoot,
+		policy,
+		contractCheck: join(scriptDir, 'contract-check.mjs'),
+		reviewCapCheck: join(scriptDir, 'review-cap-check.mjs')
+	};
+}
+
+const layout = resolveGateLayout(import.meta.url);
+const ROOT = layout.dataRoot;
+const POLICY = layout.policy;
 const FORBIDDEN_LEARNED_BUILTIN = /\b(http\.send|opa\.runtime|net\.lookup_ip_addr|io\.jwt)\b/;
 const PACKAGE_HOME = {
 	'harness.canon': 'canon.rego',
@@ -24,7 +45,7 @@ const PACKAGE_HOME = {
 const args = process.argv.slice(2);
 const testOnly = args.includes('--test');
 
-const opa = ensureOpa();
+let opa;
 
 function fail(msg) {
 	console.error(`[feature-gate] 失敗 ${msg}`);
@@ -116,19 +137,24 @@ function runOpaTest() {
 	}
 }
 
-runOpaTest();
-if (testOnly) {
-	console.log('[feature-gate] opa test 成功');
-	process.exit(0);
+const entry = process.argv[1] ? pathToFileURL(resolve(process.argv[1])).href : '';
+if (import.meta.url === entry) {
+	opa = ensureOpa();
+	runOpaTest();
+	if (testOnly) {
+		console.log('[feature-gate] opa test 成功');
+		process.exit(0);
+	}
+
+	execFileSync(process.execPath, [layout.contractCheck, layout.dataRoot], {
+		stdio: 'inherit',
+		cwd: ROOT
+	});
+	execFileSync(process.execPath, [layout.reviewCapCheck, layout.dataRoot], {
+		stdio: 'inherit',
+		cwd: ROOT,
+		env: { ...process.env, HARNESS_ROOT: layout.dataRoot }
+	});
+
+	console.log('[feature-gate] 成功');
 }
-
-execFileSync(process.execPath, [join(ROOT, 'scripts/contract-check.mjs')], {
-	stdio: 'inherit',
-	cwd: ROOT
-});
-execFileSync(process.execPath, [join(ROOT, 'scripts/review-cap-check.mjs')], {
-	stdio: 'inherit',
-	cwd: ROOT
-});
-
-console.log('[feature-gate] 成功');

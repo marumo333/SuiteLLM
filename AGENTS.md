@@ -15,7 +15,7 @@ Node.js 製のガバナンスハーネス。npm 依存パッケージは無い�
 - Node.js 22 系 + pnpm 10.33.3（corepack 経由）。追加の言語ランタイムは不要。
 - ゲート（feature-gate / OPA）は **Linux amd64 専用**。`scripts/ensure-opa.mjs` が OPA v1.8.0 を `.tools/opa` に digest 検証付きで取得する（`.tools/` は gitignore）。macOS / Windows / Linux arm64 では動かない。
 - 一致行検索の `rg` も同じ。`scripts/ensure-rg.mjs` が ripgrep 15.2.0 の musl バイナリを `.tools/rg` に tarball とバイナリの digest で固定する。PATH の `rg` と `apt-get` は使わない。
-- `scripts/feature-gate.mjs` は末尾で `scripts/contract-check.mjs` と `scripts/review-cap-check.mjs` を呼ぶ。契約は `node_modules/typescript` が要る。CI は `pnpm install` のあと、チェックアウトした `node scripts/feature-gate.mjs` を実行する。コミット主語の検査だけ `origin/main` の lint を使う。
+- `scripts/feature-gate.mjs` は末尾で、自分の隣の `contract-check.mjs` と `review-cap-check.mjs` を呼ぶ。policy と契約と `cycle/events.jsonl` の根は `HARNESS_ROOT`（無ければスクリプトの親）。契約は `node_modules/typescript` が要る。CI は `pnpm install` のあと、`origin/main` の `feature-gate.mjs` をチェックアウトへ向ける。`opa test` の policy は PR の `policy/`。tsc は PR の `node_modules` を、展開した scripts の隣に結ぶ。コミット主語の検査も `origin/main` の lint を使う。
 - OPA バイナリの取得には GitHub Releases への外向き通信が必要。初回の `node scripts/feature-gate.mjs` 実行時に遅延ダウンロードされる。
 
 ### コマンド（lint / test / build / run に相当）

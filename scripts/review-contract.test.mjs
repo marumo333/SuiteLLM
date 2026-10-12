@@ -33,10 +33,23 @@ test('feature-gate の CI は同じ単体テストコマンドを実行する', 
 test('CI は feature-gate より前に pnpm install する', () => {
 	const workflow = read('.github/workflows/feature-gate.yml');
 	const installAt = workflow.indexOf('pnpm install --frozen-lockfile');
-	const gateAt = workflow.indexOf('node scripts/feature-gate.mjs');
+	const gateAt = workflow.indexOf('HARNESS_ROOT=');
 	assert.ok(installAt >= 0, 'pnpm install が workflow に無い');
-	assert.ok(gateAt >= 0, 'feature-gate の起動が workflow に無い');
+	assert.ok(gateAt >= 0, 'PR ツリーへ向けた feature-gate の起動が workflow に無い');
 	assert.ok(installAt < gateAt, 'feature-gate は contract-check を呼ぶ。typescript は先に入れる');
+});
+
+test('CI は main の検査ロジックを PR ツリーに向け、policy は PR のまま', () => {
+	const workflow = read('.github/workflows/feature-gate.yml');
+	assert.match(workflow, /^on:\n {2}push:\n {2}pull_request:\n/m);
+	assert.doesNotMatch(workflow, /pull_request_target/);
+	assert.match(workflow, /contents: read/);
+	assert.match(workflow, /HARNESS_ROOT=/);
+	assert.match(workflow, /git archive origin\/main scripts/);
+	assert.match(workflow, /ln -s .*node_modules/);
+	assert.doesNotMatch(workflow, /OPA_POLICY_DIR/);
+	assert.doesNotMatch(workflow, /contract-check\.mjs/);
+	assert.doesNotMatch(workflow, /review-cap-check\.mjs/);
 });
 
 test('席ルーティングは検証 subagent を出さない', () => {
