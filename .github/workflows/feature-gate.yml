@@ -14,7 +14,17 @@ jobs:
       - name: pnpm
         run: corepack enable && corepack prepare pnpm@10.33.3 --activate && pnpm install --frozen-lockfile
       - name: feature-gate を実行する
-        run: node scripts/feature-gate.mjs
+        run: |
+          set -euo pipefail
+          data_root="${GITHUB_WORKSPACE}"
+          gate="scripts/feature-gate.mjs"
+          if git cat-file -e origin/main:scripts/feature-gate.mjs 2>/dev/null; then
+            tmp="$(mktemp -d)"
+            git archive origin/main scripts | tar -x -C "$tmp"
+            ln -s "${data_root}/node_modules" "${tmp}/node_modules"
+            gate="${tmp}/scripts/feature-gate.mjs"
+          fi
+          HARNESS_ROOT="${data_root}" node "${gate}"
       - name: ハーネス単体テスト
         run: node scripts/run-harness-tests.mjs
       - name: コミット主語を検査する

@@ -10,7 +10,7 @@ harness_agents:
     - plan-confirm
   opus_gates: []
   review_trio: []
-  sonnet_pin: claude-sonnet-5-thinking-high
+  # 使わないスラッグは書かない。Sonnet / Sol / Terra / Luna は席が無い。
   fable_pin: claude-fable-5-1-thinking-high
   budget_guards:
     parent_chat: grok-only
