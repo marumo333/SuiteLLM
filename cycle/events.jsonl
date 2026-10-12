@@ -195,3 +195,5 @@
 {"t":"2026-10-12T09:05:32.985Z","type":"token_ledger","cycle":"C-0019","seat":"grok","effort":"medium","packet_bytes":0,"tasks":1,"zero_value_reinject":false}
 {"t":"2026-10-12T09:08:52.668Z","type":"human_approved","cycle":"C-0019","merge_sha":"cea346097231e3bff72815f0dc8240a7c94ffab1","pr":"29"}
 {"t":"2026-10-12T09:08:52.676Z","type":"cycle_open","cycle":"C-0020","source":"after-merge","from":"C-0019"}
+{"t":"2026-10-12T15:54:31.567Z","type":"human_approved","cycle":"C-0020","merge_sha":"ae0be4db390535536f79b061799e1b9cbe40c815","pr":"30"}
+{"t":"2026-10-12T15:54:31.641Z","type":"cycle_open","cycle":"C-0021","source":"after-merge","from":"C-0020"}
