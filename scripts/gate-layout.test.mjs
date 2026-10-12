@@ -16,6 +16,7 @@ test('feature-gate の子はスクリプトの隣、policy はデータ根', () 
 	assert.equal(layout.policy, '/work/pr/policy');
 	assert.equal(layout.contractCheck, '/tmp/archive/scripts/contract-check.mjs');
 	assert.equal(layout.reviewCapCheck, '/tmp/archive/scripts/review-cap-check.mjs');
+	assert.equal(layout.revisionSelect, '/tmp/archive/scripts/revision-select.mjs');
 });
 
 test('HARNESS_ROOT が無い feature-gate はスクリプトの親をデータ根にする', () => {
@@ -29,6 +30,7 @@ test('feature-gate はデータ根の scripts ではなく隣の子を起動す�
 	const src = readFileSync(new URL('./feature-gate.mjs', import.meta.url), 'utf8');
 	assert.match(src, /execFileSync\(process\.execPath, \[layout\.contractCheck, layout\.dataRoot\]/);
 	assert.match(src, /execFileSync\(process\.execPath, \[layout\.reviewCapCheck, layout\.dataRoot\]/);
+	assert.match(src, /execFileSync\(process\.execPath, \[layout\.revisionSelect, '--gate', layout\.dataRoot\]/);
 	assert.doesNotMatch(src, /join\(layout\.dataRoot, 'scripts\/contract-check\.mjs'\)/);
 	assert.doesNotMatch(src, /join\(layout\.dataRoot, 'scripts\/review-cap-check\.mjs'\)/);
 });
