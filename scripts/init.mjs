@@ -48,7 +48,7 @@ function readPkg(root) {
 
 function isHarness(root) {
 	const pkg = readPkg(root);
-	return pkg?.name === 'cursor-harness' && exists(root, 'policy/canon.rego');
+	return pkg?.name === 'marumo-cloud' && exists(root, 'policy/canon.rego');
 }
 
 function nextCommand(pkg, runner) {

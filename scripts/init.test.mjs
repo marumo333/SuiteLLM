@@ -155,7 +155,7 @@ test('依存コマンドが失敗したら ok は false で見出しを書かな
 test('このハーネスでは依存も見出しも足さない', () => {
 	const dir = root();
 	put(dir, 'policy/canon.rego', 'package harness.canon\n');
-	put(dir, 'package.json', JSON.stringify({ name: 'cursor-harness' }));
+	put(dir, 'package.json', JSON.stringify({ name: 'marumo-cloud' }));
 	put(dir, 'pnpm-lock.yaml', 'lockfileVersion: 9\n');
 	const calls = [];
 	const result = runInit(dir, {

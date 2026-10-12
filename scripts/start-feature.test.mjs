@@ -86,7 +86,7 @@ test('スラッグが空や経路なら拒否する', () => {
 test('このハーネスでは機能ファイルを作らない', () => {
 	const dir = root();
 	put(dir, 'policy/canon.rego', 'package harness.canon\n');
-	put(dir, 'package.json', JSON.stringify({ name: 'cursor-harness' }));
+	put(dir, 'package.json', JSON.stringify({ name: 'marumo-cloud' }));
 	ready(dir);
 	const result = runStartFeature(dir, { slug: 'checkout' });
 	assert.equal(result.ok, false);

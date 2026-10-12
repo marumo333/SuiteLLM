@@ -9,9 +9,9 @@ description: 親は Grok。検証は契約と feature-gate を親が実行する
 
 | 席                   | いつ                                                                 |
 | -------------------- | -------------------------------------------------------------------- |
-| 親チャット **Grok 4.7 high** | 常時。壁打ち・調査・実装・契約とゲートの実行・cycle 記録           |
-| Task **Fable 5.1 high** | 並列展開前の plan-confirm、または人が明示したレビュー1回、grow 前の設計 |
-| Task **Grok 4.7 high**  | ファイルが重ならない実装の並列展開                                 |
+| 親チャット **Grok 4.7 high** | 常時。壁打ち・調査・重なるファイルの実装・契約とゲートの実行・cycle 記録 |
+| Task **Fable 5.1 high** | 重ならないスライスの前の plan-confirm、または人が明示したレビュー1回、grow 前の設計 |
+| Task **Grok 4.7 high**  | 計画確認のあと、ファイルが重ならないスライスを同時に進める既定。完成は 1 本の PR |
 | Task **Opus 5.5** / **Muse** | 起動しない。検証と内省は親が行う                                   |
 
 ## budget_guards（必ず守る）
@@ -20,7 +20,7 @@ description: 親は Grok。検証は契約と feature-gate を親が実行する
 2. ゲート Task 入力は**成果物のみ**（計画 md / diff / 失敗ログ / ADR パス）。会話履歴の丸投げ禁止。
 3. Muse / Opus の検証 subagent は起動しない。Sol / Terra / Luna も使わない。
 4. 3体のレビューは起動しない。人が明示したレビューは Fable 1回で止める（[[0050]] / [[0051]]）。
-5. plan-confirm は並列展開の前だけ。単独の修正では出さない。
+5. plan-confirm は重ならないスライスを同時に進める前だけ。重なるファイルを親が書く修正では出さない。
 6. 完了判定は `node scripts/feature-gate.mjs` の出口コード。名前付き agent に判定させない。
 7. 人が明示した Fable の実効モデルが `claude-fable-5-1-thinking-high` でなければ、その起動は failed。
 8. **1周の再注入**: 各席に渡すのは goal / feature / diff / 関連 ADR パス / 今周の事実だけ。
@@ -37,6 +37,6 @@ description: 親は Grok。検証は契約と feature-gate を親が実行する
 ## superpowers 接続
 
 `brainstorming`(親 Grok) → `writing-plans`(親 Grok) →
-`plan-confirm`(並列展開のときだけ) → 実装 → 契約と feature-gate（親が実行）。
+`plan-confirm`(重ならないスライスの前) → 重ならないスライスは `grok-4.7-high` で同時、重なるファイルは親が書く → 契約と feature-gate（親が実行）。完成は 1 本の PR。
 
 使ったら `cycle` skill で node/edge を記録する。

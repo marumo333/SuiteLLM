@@ -69,7 +69,7 @@
 
 ## ガバナンス
 
-`marumo333-cursor-harness` の対象は席・正本・ゲート・cycle である。依存は TypeScript と OPA。script は `test`、`opa:test`、`opa:gate`。workflow は `feature-gate.yml` と `harness-cycle.yml`。ここを Next のひな型にすると、製品の依存とゲートの依存が混ざる。
+`marumo-cloud` の対象は席・正本・ゲート・cycle である。依存は TypeScript と OPA。script は `test`、`opa:test`、`opa:gate`。workflow は `feature-gate.yml` と `harness-cycle.yml`。ここを Next のひな型にすると、製品の依存とゲートの依存が混ざる。
 
 ## 工場の外
 

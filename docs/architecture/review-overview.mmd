@@ -22,6 +22,6 @@ flowchart TB
   PR --> HM["人間マージ"]
   HM --> CY["次の cycle"]
   HM --> DC["docs/decisions"]
-  G -.->|並列展開の前| BA["Fable backend-architect"]
+  G -.->|重ならないスライスの前| BA["Fable backend-architect"]
   G -.->|人が明示した1回| SR["Fable security-reviewer"]
   CAP -->|0回| OFF["verifier と reflector は起動しない"]

@@ -2,7 +2,8 @@ flowchart LR
   subgraph seats["席"]
     direction TB
     G["親 Grok 4.7"]
-    IMP["実装と検証は親"]
+    IMP["検証は親。重なるファイルも親"]
+    PAR["重ならないスライスは grok-4.7-high"]
     Rec["cycle-record"]
     BA["Fable は条件付き"]
     OFF["verifier と reflector は起動しない"]
@@ -23,6 +24,7 @@ flowchart LR
   end
 
   G --> IMP
+  G --> PAR
   IMP --> Hook
   IMP --> Gate
   Gate -.->|"判定のみ"| Policy

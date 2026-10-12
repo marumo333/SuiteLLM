@@ -13,7 +13,7 @@ tools: Read, Grep, Glob, Write, Edit
 ## 責務
 - ゲートと cycle の境界と不変条件。機能ごとの票は作らない。
 - 重要判断を機能ごとの ADR にしない。振る舞いは `features/<slug>/requirements.md` に書く。
-- 並列展開前の plan-confirm（計画 md のみ・実装禁止）。
+- 重ならないスライスの前の plan-confirm（計画 md のみ・実装禁止）。
 
 ## 禁止事項
 - GitHub Issue / Spec Kit を正本にしない（[[0033]]）。

@@ -56,10 +56,14 @@ test('README はアーキテクチャ概要の画像だけを示し、mermaid �
 	assert.doesNotMatch(readme, /正本倉庫/);
 	assert.doesNotMatch(readme, /出荷/);
 	assert.doesNotMatch(readme, /原料/);
-	assert.match(readme, /docs\/architecture\/review-overview\.png/);
-	assert.match(readme, /docs\/architecture\/audit-overview\.png/);
-	assert.match(readme, /docs\/architecture\/runtime-overview\.png/);
-	assert.match(readme, /docs\/architecture\/self-improve-flow\.png/);
+	assert.match(readme, /docs\/architecture\/review-overview\.gif/);
+	assert.match(readme, /docs\/architecture\/audit-overview\.gif/);
+	assert.match(readme, /docs\/architecture\/runtime-overview\.gif/);
+	assert.match(readme, /docs\/architecture\/self-improve-flow\.gif/);
+	assert.doesNotMatch(readme, /docs\/architecture\/review-overview\.png/);
+	assert.doesNotMatch(readme, /docs\/architecture\/audit-overview\.png/);
+	assert.doesNotMatch(readme, /docs\/architecture\/runtime-overview\.png/);
+	assert.doesNotMatch(readme, /docs\/architecture\/self-improve-flow\.png/);
 	assert.match(readme, /docs\/architecture\/review-overview\.mmd/);
 	assert.doesNotMatch(readme, /```mermaid/);
 	assert.doesNotMatch(readme, /下記 mermaid/);
@@ -107,7 +111,8 @@ test('README はアーキテクチャ概要の画像だけを示し、mermaid �
 	assert.ok(
 		sources.some(
 			(b) =>
-				/実装と検証は親/.test(b) &&
+				/検証は親。重なるファイルも親/.test(b) &&
+				/重ならないスライスは grok-4\.7-high/.test(b) &&
 				/IMP --> Hook/.test(b) &&
 				/判定のみ/.test(b) &&
 				/cycle-record/.test(b) &&
