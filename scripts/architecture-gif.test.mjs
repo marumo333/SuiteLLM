@@ -47,3 +47,19 @@ test('破線のあるアーキテクチャ図は自己改善図と同じ 8 フ�
 	const audit = readFileSync(join(ROOT, 'docs/architecture/audit-overview.gif'));
 	assert.equal(gifFrames(audit), 1, '監査図の辺は実線だけなので動かない');
 });
+
+test('アーキテクチャ図は README の欄に収まる', () => {
+	const names = [
+		'self-improve-flow',
+		'runtime-overview',
+		'review-overview',
+		'host-entry-as-is-to-be',
+		'audit-overview'
+	];
+	for (const name of names) {
+		const buf = readFileSync(join(ROOT, 'docs/architecture', `${name}.gif`));
+		const w = buf.readUInt16LE(6);
+		const h = buf.readUInt16LE(8);
+		assert.ok(w <= 920 && h <= 800, `${name} は ${w}x${h}`);
+	}
+});

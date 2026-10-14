@@ -48,7 +48,7 @@ Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。�
 
 ### 入口
 
-as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は三つの入口が同じ `AGENTS.md` を読む。`pnpm install` は git hooks を書く。クラウドも手元もプロバイダとモデルは聞かない。実行はホストの既定。答えは共有の yaml には書かない。
+as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は、クラウドの起動が git clone のあと初期化する。初期化は `.cursor/environment.json` の install で、`pnpm install` が git hooks を書く。クラウドも手元もプロバイダとモデルは聞かない。三つの入口は同じ `AGENTS.md` を読む。実行はホストの既定。答えは共有の yaml には書かない。
 
 ![入口の as-is と to-be](docs/architecture/host-entry-as-is-to-be.gif)
 
