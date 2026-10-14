@@ -65,3 +65,19 @@ test('security-reviewer は毎タスクでは起動しない', () => {
 	assert.match(agent, /直す以外はコードを変えない/);
 	assert.doesNotMatch(agent, /必ず使う/);
 });
+
+test('セキュリティ・振る舞い・設計は1回の読みに含め、観点ごとに席を増やさない', () => {
+	const skill = read('.claude/skills/adversarial-review/SKILL.md');
+	assert.match(skill, /セキュリティ/);
+	assert.match(skill, /振る舞い/);
+	assert.match(skill, /設計/);
+	assert.match(skill, /観点ごとに席は増やさない/);
+	assert.doesNotMatch(skill, /3体/);
+	const agent = read('.claude/agents/security-reviewer.md');
+	assert.match(agent, /振る舞い/);
+	assert.match(agent, /設計/);
+	assert.match(agent, /観点ごとに起動しない/);
+	const budget = read('.claude/skills/harness-api-budget/SKILL.md');
+	assert.match(budget, /観点ごとに席は増やさない/);
+	assert.match(budget, /3体のレビューは起動しない/);
+});

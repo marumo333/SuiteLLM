@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OPA の検査と契約、レビュー上限、採点改訂の保持。Feature 票は使わない。
+ * OPA の検査と契約、レビュー上限。Feature 票は使わない。
  * canon の一覧は opa test が検査する。差分の被覆には使わない。
  * 子スクリプトは import.meta.url の隣。policy と契約と events の根は HARNESS_ROOT。
  */
@@ -25,8 +25,7 @@ export function resolveGateLayout(scriptUrl, env = process.env) {
 		dataRoot,
 		policy,
 		contractCheck: join(scriptDir, 'contract-check.mjs'),
-		reviewCapCheck: join(scriptDir, 'review-cap-check.mjs'),
-		revisionSelect: join(scriptDir, 'revision-select.mjs')
+		reviewCapCheck: join(scriptDir, 'review-cap-check.mjs')
 	};
 }
 
@@ -152,11 +151,6 @@ if (import.meta.url === entry) {
 		cwd: ROOT
 	});
 	execFileSync(process.execPath, [layout.reviewCapCheck, layout.dataRoot], {
-		stdio: 'inherit',
-		cwd: ROOT,
-		env: { ...process.env, HARNESS_ROOT: layout.dataRoot }
-	});
-	execFileSync(process.execPath, [layout.revisionSelect, '--gate', layout.dataRoot], {
 		stdio: 'inherit',
 		cwd: ROOT,
 		env: { ...process.env, HARNESS_ROOT: layout.dataRoot }

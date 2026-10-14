@@ -41,4 +41,3 @@ node scripts/check-behavior.mjs
 1. 親は Grok 4.7 high。検証と内省は親が行う。検証用の subagent は出さない。
 2. 機能は `node scripts/start-feature.mjs <slug>` の振る舞いとテストで進める。
 3. 人間がマージすると次の cycle が開く。Feature 票は開かない。エージェントは自動起動しない。
-4. 採点のあるハーネス改訂は `node scripts/revision-select.mjs --file` にかける。開発集合の平均が親を上回るときだけ候補を残す。評価問はフィードバックと採点に入れない。重み学習はしない。

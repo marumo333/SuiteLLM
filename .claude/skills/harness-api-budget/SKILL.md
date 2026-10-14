@@ -19,7 +19,7 @@ description: 親は Grok。検証は契約と feature-gate を親が実行する
 1. 親を Opus/Fable にピッカー切替しない。
 2. ゲート Task 入力は**成果物のみ**（計画 md / diff / 失敗ログ / ADR パス）。会話履歴の丸投げ禁止。
 3. Muse / Opus の検証 subagent は起動しない。Sol / Terra / Luna も使わない。
-4. 3体のレビューは起動しない。人が明示したレビューは Fable 1回で止める（[[0050]] / [[0051]]）。
+4. 3体のレビューは起動しない。セキュリティ、振る舞い、設計は同じ1回に含める。観点ごとに席は増やさない。人が明示したレビューは Fable 1回で止める（[[0050]] / [[0051]]）。
 5. plan-confirm は重ならないスライスを同時に進める前だけ。重なるファイルを親が書く修正では出さない。
 6. 完了判定は `node scripts/feature-gate.mjs` の出口コード。名前付き agent に判定させない。
 7. 人が明示した Fable の実効モデルが `claude-fable-5-1-thinking-high` でなければ、その起動は failed。
