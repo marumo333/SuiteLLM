@@ -209,3 +209,5 @@
 {"t":"2026-10-14T11:30:40.369Z","type":"node_state","cycle":"C-0022","node":"skill:harness-api-budget","state":"used"}
 {"t":"2026-10-14T11:30:40.395Z","type":"node_state","cycle":"C-0022","node":"skill:plan-confirm","state":"skipped"}
 {"t":"2026-10-14T11:30:40.419Z","type":"token_ledger","cycle":"C-0022","seat":"grok","effort":"high","packet_bytes":0,"tasks":1,"zero_value_reinject":false}
+{"t":"2026-10-14T12:45:32.146Z","type":"human_approved","cycle":"C-0022","merge_sha":"1c9cebe3cb96b9a1ac662d086db869a244631647","pr":"33"}
+{"t":"2026-10-14T12:45:32.154Z","type":"cycle_open","cycle":"C-0023","source":"after-merge","from":"C-0022"}
