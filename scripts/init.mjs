@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /** clone の次に一度叩く。既存ファイルは上書きしない。 */
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { copyFileSync, existsSync, lstatSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const SCAFFOLD = {
@@ -31,6 +31,29 @@ const SCAFFOLD = {
 };
 
 const HEADINGS = ['AGENTS.md', 'GLOSSARY.md', 'ACTIONS.md'];
+
+export const FRESH_EVENTS =
+	'{"t":"2026-08-14T00:00:00Z","type":"cycle_open","cycle":"C-0001","source":"template"}\n';
+
+const TEMPLATE_ORIGIN = /marumo333\/(?:marumo333-cloud|cursor-harness)(?:\.git)?$/;
+
+export function isTemplateOrigin(origin) {
+	return typeof origin === 'string' && TEMPLATE_ORIGIN.test(origin.trim());
+}
+
+/** プロダクトの remote だけ蓄積を空に戻す。テンプレートの履歴は残す。 */
+export function shouldResetAccumulation({ product, origin, harness }) {
+	if (!product) return false;
+	if (isTemplateOrigin(origin)) return false;
+	if (harness && !String(origin ?? '').trim()) return false;
+	return true;
+}
+
+export function stripLearnings(text) {
+	const idx = text.search(/\n## 20\d{2}-/);
+	const head = idx < 0 ? text : text.slice(0, idx).replace(/\n---\s*$/, '\n');
+	return head.endsWith('\n') ? head : `${head}\n`;
+}
 
 function exists(root, rel) {
 	return existsSync(join(root, rel));
@@ -99,6 +122,104 @@ export function planInit(root) {
 	};
 }
 
+const CYCLE_KEEP = new Set(['required-cycle.json', 'model-routing.yaml', 'code-quality.yaml', 'events.jsonl']);
+const DOCS_KEEP = new Set(['learnings.md', 'multi-agent-and-pins.md']);
+
+function relPath(root, abs) {
+	return relative(root, abs).split('\\').join('/');
+}
+
+function listFiles(dir) {
+	/** @type {string[]} */
+	const out = [];
+	if (!existsSync(dir)) return out;
+	/** @type {string[]} */
+	const stack = [dir];
+	while (stack.length) {
+		const current = stack.pop();
+		let st;
+		try {
+			st = lstatSync(current);
+		} catch {
+			continue;
+		}
+		if (st.isSymbolicLink() || !st.isDirectory()) continue;
+		for (const ent of readdirSync(current, { withFileTypes: true })) {
+			const abs = join(current, ent.name);
+			if (ent.isSymbolicLink()) continue;
+			if (ent.isDirectory()) stack.push(abs);
+			else if (ent.isFile()) out.push(abs);
+		}
+	}
+	return out;
+}
+
+function pruneEmpty(dir, stop) {
+	let st;
+	try {
+		st = lstatSync(dir);
+	} catch {
+		return;
+	}
+	if (st.isSymbolicLink() || !st.isDirectory()) return;
+	for (const name of readdirSync(dir)) {
+		pruneEmpty(join(dir, name), stop);
+	}
+	if (dir !== stop && readdirSync(dir).length === 0) rmSync(dir, { recursive: true });
+}
+
+function resetAccumulation(root) {
+	/** @type {string[]} */
+	const touched = [];
+	const cycleDir = join(root, 'cycle');
+	if (existsSync(cycleDir)) {
+		for (const abs of listFiles(cycleDir)) {
+			const rel = relPath(root, abs);
+			const inside = rel.slice('cycle/'.length);
+			if (inside === 'packets/.gitkeep' || CYCLE_KEEP.has(inside)) continue;
+			rmSync(abs);
+			touched.push(rel);
+		}
+		pruneEmpty(cycleDir, cycleDir);
+		const eventsPath = join(cycleDir, 'events.jsonl');
+		if (!existsSync(eventsPath)) {
+			writeFileSync(eventsPath, FRESH_EVENTS);
+			touched.push('cycle/events.jsonl');
+		} else if (readFileSync(eventsPath, 'utf8') !== FRESH_EVENTS) {
+			writeFileSync(eventsPath, FRESH_EVENTS);
+			touched.push('cycle/events.jsonl');
+		}
+	}
+	const docsDir = join(root, 'docs');
+	if (existsSync(docsDir)) {
+		for (const abs of listFiles(docsDir)) {
+			const rel = relPath(root, abs);
+			const inside = rel.slice('docs/'.length);
+			if (inside.startsWith('decisions/') || DOCS_KEEP.has(inside)) continue;
+			rmSync(abs);
+			touched.push(rel);
+		}
+		pruneEmpty(docsDir, docsDir);
+		const learnPath = join(docsDir, 'learnings.md');
+		if (existsSync(learnPath)) {
+			const current = readFileSync(learnPath, 'utf8');
+			const next = stripLearnings(current);
+			if (next !== current) {
+				writeFileSync(learnPath, next);
+				touched.push('docs/learnings.md');
+			}
+		}
+	}
+	return touched;
+}
+
+function accumulationLines(reset, touched) {
+	if (!reset) return ['[init] テンプレートの蓄積は残す'];
+	const folders = [...new Set(touched.map((path) => (path.startsWith('cycle/') ? 'cycle/' : path.startsWith('docs/') ? 'docs/' : path)))].sort();
+	if (folders.length === 0) return ['[init] 蓄積は既に空の周'];
+	return [`[init] 蓄積を初期化: ${folders.join(', ')}`];
+}
+
 function linesFor(plan, created, copied) {
 	if (plan.kind === 'harness') {
 		return ['[init] このハーネスの clone 後は pnpm install'];
@@ -124,15 +245,26 @@ function defaultSpawn(cmd, cwd) {
  * @param {string} root
  * @param {{ spawn?: (cmd: string[], cwd: string) => boolean }} [opts]
  */
+function readOrigin(root) {
+	const ran = spawnSync('git', ['-C', root, 'remote', 'get-url', 'origin'], { encoding: 'utf8' });
+	if (ran.status !== 0) return '';
+	return String(ran.stdout ?? '').trim();
+}
+
 export function runInit(root, opts = {}) {
 	const spawn = opts.spawn ?? defaultSpawn;
 	const plan = planInit(root);
+	const product = opts.product === true;
+	const origin = product ? (opts.origin === undefined ? readOrigin(root) : opts.origin) : '';
+	const reset = shouldResetAccumulation({ product, origin, harness: plan.kind === 'harness' });
+	const touched = reset ? resetAccumulation(root) : [];
+	const extra = product ? accumulationLines(reset, touched) : [];
 	if (plan.kind === 'harness') {
-		return { ok: true, lines: linesFor(plan, [], false), created: [], copied: false };
+		return { ok: true, lines: [...linesFor(plan, [], false), ...extra], created: [], copied: false, reset: touched };
 	}
 	for (const cmd of plan.installs) {
 		if (!spawn(cmd, root)) {
-			return { ok: false, lines: linesFor(plan, [], false), created: [], copied: false };
+			return { ok: false, lines: [...linesFor(plan, [], false), ...extra], created: [], copied: false, reset: touched };
 		}
 	}
 	let copied = false;
@@ -141,7 +273,7 @@ export function runInit(root, opts = {}) {
 		copied = true;
 	}
 	if (plan.prisma && !spawn(plan.prisma, root)) {
-		return { ok: false, lines: linesFor(plan, [], copied), created: [], copied };
+		return { ok: false, lines: [...linesFor(plan, [], copied), ...extra], created: [], copied, reset: touched };
 	}
 	/** @type {string[]} */
 	const created = [];
@@ -151,7 +283,7 @@ export function runInit(root, opts = {}) {
 		writeFileSync(path, SCAFFOLD[name]);
 		created.push(name);
 	}
-	return { ok: true, lines: linesFor(plan, created, copied), created, copied };
+	return { ok: true, lines: [...linesFor(plan, created, copied), ...extra], created, copied, reset: touched };
 }
 
 function main() {
@@ -162,7 +294,7 @@ function main() {
 		process.exit(1);
 	}
 	const root = resolve(cwdArg || process.cwd());
-	const result = runInit(root);
+	const result = runInit(root, { product: process.argv.includes('--product') });
 	for (const line of result.lines) console.log(line);
 	process.exit(result.ok ? 0 : 1);
 }

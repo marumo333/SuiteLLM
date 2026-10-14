@@ -123,6 +123,10 @@ test('Cursor と Claude Code と Codex は同じ契約の入口を持つ', () =>
 	assert.match(pins, /Claude Code はルートの `AGENTS.md`/);
 	assert.match(pins, /`CLAUDE.md` は置かない/);
 	const hostFig = read('docs/architecture/host-entry-as-is-to-be.mmd');
+	assert.match(hostFig, /クラウド起動/);
+	assert.match(hostFig, /git clone/);
+	assert.match(hostFig, /起動時に初期化/);
+	assert.match(hostFig, /cycle と docs/);
 	assert.match(hostFig, /クラウドも手元も質問しない/);
 	assert.doesNotMatch(hostFig, /一度だけ選ぶ/);
 	assert.match(hostFig, /共有 yaml には書かない/);
@@ -131,6 +135,16 @@ test('Cursor と Claude Code と Codex は同じ契約の入口を持つ', () =>
 	assert.match(hostFig, /yaml が製品スラッグを名指し/);
 	assert.doesNotMatch(hostFig, PRODUCT_SLUG);
 	assert.match(read('README.md'), /docs\/architecture\/host-entry-as-is-to-be\.gif/);
+	assert.match(read('README.md'), /git clone のあと初期化/);
+	assert.match(read('README.md'), /cycle\/events\.jsonl/);
+	assert.match(read('README.md'), /docs\/decisions\//);
+	assert.match(read('README.md'), /テンプレートの remote では消さない/);
+	assert.match(read('.gitignore'), /!\.cursor\/environment\.json/);
+	const cloud = JSON.parse(read('.cursor/environment.json'));
+	assert.match(cloud.install, /pnpm install --frozen-lockfile/);
+	assert.match(cloud.install, /init\.mjs --product/);
+	assert.doesNotMatch(cloud.install, /setup-host/);
+	assert.match(read('AGENTS.md'), /\.cursor\/environment\.json/);
 	const readme = read('README.md');
 	assert.match(readme, /## 3つのプロバイダ/);
 	assert.match(readme, /Cursor は `\.cursor\/hooks\.json` と `AGENTS\.md`/);

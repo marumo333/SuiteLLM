@@ -20,7 +20,7 @@ Node.js 製のガバナンスハーネス。npm 依存パッケージは無い�
 
 ### コマンド（lint / test / build / run に相当）
 
-- 依存導入 + git hooks 設定: `pnpm install`（`prepare` が `core.hooksPath=scripts/githooks` を設定）。クラウドも手元もプロバイダとモデルは聞かない。実行はホストの既定。答えは共有の yaml には書かない。
+- 依存導入 + git hooks 設定: `pnpm install`（`prepare` が `core.hooksPath=scripts/githooks` を設定）。クラウドの起動は git clone のあと `.cursor/environment.json` の `install` が `node scripts/init.mjs --product` を呼ぶ。プロダクトの remote では `cycle/` と `docs/` を空の周に戻す。`cycle` の正本 yaml と `docs/decisions/` は残す。このテンプレートの remote では消さない。クラウドも手元もプロバイダとモデルは聞かない。実行はホストの既定。答えは共有の yaml には書かない。
 - 自動テスト: `pnpm test`（`node --test`）。
 - ポリシー lint / test（OPA のみ）: `node scripts/feature-gate.mjs --test`。
 - 正本ゲート本体（build/run 相当）: `node scripts/feature-gate.mjs`。見る範囲は `policy/canon.rego`。Feature 票は作らない。

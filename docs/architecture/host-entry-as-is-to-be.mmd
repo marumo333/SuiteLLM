@@ -1,24 +1,28 @@
-%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","primaryColor":"#ffffff","primaryTextColor":"#26263d","primaryBorderColor":"#26263d","lineColor":"#000000","textColor":"#26263d","mainBkg":"#ffffff","nodeBorder":"#26263d","clusterBkg":"#ffffff","clusterBorder":"#26263d","titleColor":"#26263d","edgeLabelBackground":"#ffffff","fontFamily":"WenQuanYi Micro Hei, sans-serif","fontSize":"16px"},"themeCSS":".node rect,.node polygon,.node circle,.node ellipse{filter:drop-shadow(4px 4px 0 #f0f0f0);stroke:#26263d;stroke-width:2px;fill:#ffffff}.cluster rect{fill:#ffffff;stroke:#26263d;stroke-width:1.5px}.flowchart-link{stroke:#000000;stroke-width:2px}.edge-thickness-thick{stroke-width:3.5px}.edge-pattern-dashed,.edge-pattern-dotted{stroke-dasharray:12 8}","flowchart":{"useMaxWidth":false,"htmlLabels":true,"wrappingWidth":520,"padding":24,"nodeSpacing":40,"rankSpacing":48,"diagramPadding":24,"curve":"basis"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","primaryColor":"#ffffff","primaryTextColor":"#26263d","primaryBorderColor":"#26263d","lineColor":"#000000","textColor":"#26263d","mainBkg":"#ffffff","nodeBorder":"#26263d","clusterBkg":"#ffffff","clusterBorder":"#26263d","titleColor":"#26263d","edgeLabelBackground":"#ffffff","fontFamily":"WenQuanYi Micro Hei, sans-serif","fontSize":"14px"},"themeCSS":".node rect,.node polygon,.node circle,.node ellipse{filter:drop-shadow(3px 3px 0 #f0f0f0);stroke:#26263d;stroke-width:1.5px;fill:#ffffff}.cluster rect{fill:#ffffff;stroke:#26263d;stroke-width:1px}.cluster-label{display:none}.flowchart-link{stroke:#000000;stroke-width:1.5px}.edge-thickness-thick{stroke-width:2.5px}.edge-pattern-dashed,.edge-pattern-dotted{stroke-dasharray:12 8}","flowchart":{"useMaxWidth":false,"htmlLabels":true,"wrappingWidth":148,"padding":6,"nodeSpacing":12,"rankSpacing":16,"diagramPadding":16,"curve":"basis"}}}%%
 flowchart TB
-  subgraph asis["as-is main"]
-    A0["clone"] --> A1["pnpm install が git hook を書く"]
-    A1 --> A2["契約文は Cursor ハーネス"]
-    A2 --> A3["動く入口は .cursor/hooks.json"]
+  subgraph asis["as-is"]
+    AH["as-is"] --> A0["clone"]
+    A0 --> A1["pnpm install が git hook を書く"]
+    A1 --> A3["入口は .cursor/hooks.json"]
     A3 --> A4["yaml が製品スラッグを名指し"]
     A4 --> A5["実行モデルは契約が指定"]
     A5 --> A6["選択画面は無い"]
   end
-
-  A6 ==>|変更| B0
-
-  subgraph tobe["to-be この枝"]
-    B0["clone"] --> B1["pnpm install が git hook を書く"]
-    B1 --> CU["Cursor"]
-    CU --> CL["Claude Code"]
-    CL --> CX["Codex"]
-    CX --> BM["実行モデルはホストの既定"]
+  subgraph tobe["to-be"]
+    TH["to-be"] --> Boot["クラウド起動"]
+    Boot --> B0["git clone"]
+    B0 --> B1["起動時に初期化（cycle と docs）"]
+    B1 --> HS["Cursor / Claude Code / Codex"]
+    HS --> BM["実行モデルはホストの既定"]
     BM --> BG["commit で同じ feature-gate"]
     BG -.-> NQ["クラウドも手元も質問しない"]
     NQ -.-> NY["共有 yaml には書かない"]
     NY -.-> MD["CLAUDE.md は置かない"]
   end
+  AH ~~~ TH
+  A0 ~~~ Boot
+  A1 ~~~ B0
+  A3 ~~~ B1
+  A4 ~~~ HS
+  A5 ~~~ BM
+  A6 ~~~ BG

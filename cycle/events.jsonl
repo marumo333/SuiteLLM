@@ -216,3 +216,10 @@
 {"t":"2026-10-14T12:55:39.621Z","type":"token_ledger","cycle":"C-0023","seat":"grok","effort":"high","packet_bytes":0,"tasks":1,"zero_value_reinject":false}
 {"t":"2026-10-14T13:00:51.768Z","type":"human_approved","cycle":"C-0023","merge_sha":"dd6013def975cc00dc08d3656bff45258b3dc9a7","pr":"32"}
 {"t":"2026-10-14T13:00:51.784Z","type":"cycle_open","cycle":"C-0024","source":"after-merge","from":"C-0023"}
+{"t":"2026-10-14T13:31:11.599Z","type":"node_state","cycle":"C-0024","node":"skill:harness-api-budget","state":"used"}
+{"t":"2026-10-14T13:31:11.624Z","type":"node_state","cycle":"C-0024","node":"skill:plan-confirm","state":"skipped"}
+{"t":"2026-10-14T13:31:11.649Z","type":"node_state","cycle":"C-0024","node":"skill:adversarial-review","state":"skipped"}
+{"t":"2026-10-14T13:31:11.674Z","type":"node_state","cycle":"C-0024","node":"skill:verify","state":"skipped"}
+{"t":"2026-10-14T13:31:11.698Z","type":"node_state","cycle":"C-0024","node":"skill:reflect","state":"skipped"}
+{"t":"2026-10-14T13:31:11.723Z","type":"node_state","cycle":"C-0024","node":"skill:harness-grow","state":"skipped"}
+{"t":"2026-10-14T13:31:11.748Z","type":"token_ledger","cycle":"C-0024","seat":"grok","effort":"high","packet_bytes":0,"tasks":1,"zero_value_reinject":false}
