@@ -1,16 +1,10 @@
 /**
- * 計画確認のあと、ファイルが重ならない書き込みだけを grok-4.7-high で同時に進める。
- * 重なるファイルは親が書く。枝分けと PR の分割は拒否する。
+ * 計画確認のあと、ファイルが重ならない書き込みだけをホストの既定で同時に進める。
+ * モデル ID は指定しない。重なるファイルは親が書く。枝分けと PR の分割は拒否する。
  * 同時に進む実装エージェントの数値上限は無い。数は重ならないスライスの数。
  */
 
-const IMPLEMENT_MODEL = 'grok-4.7-high';
-
-export function readGrokTask(yaml) {
-	const m = String(yaml ?? '').match(/^  grok_task:\s*(\S+)\s*$/m);
-	if (!m) return { ok: false, error: 'grok_task が model-routing.yaml に無い' };
-	return { ok: true, model: m[1] };
-}
+const PRODUCT_SLUG = /grok-\d|claude-[a-z0-9]|gpt-\d|gemini-|muse-spark-|cursor-grok/;
 
 function empty(error) {
 	return {
@@ -56,16 +50,12 @@ function taskFiles(task) {
 
 function forbiddenModel(model) {
 	if (model == null || model === '') return '';
-	const s = String(model);
-	if (s === 'grok-4.7' || s === IMPLEMENT_MODEL) return '';
-	if (/opus/i.test(s)) return '実装席を Opus に付け替えない';
-	if (/xhigh/i.test(s) || /extra-high/i.test(s)) return 'extra-high は使わない';
-	return '実装のモデルは grok-4.7-high';
+	return 'モデルは指定しない';
 }
 
 /**
  * @param {object} input
- * @param {{ grokTask?: string, routingText?: string }} [opts]
+ * @param {{ routingText?: string }} [opts]
  */
 export function planParallelSlices(input, opts = {}) {
 	const plan = input && typeof input === 'object' ? input : null;
@@ -82,13 +72,9 @@ export function planParallelSlices(input, opts = {}) {
 		return empty('完成は 1 本の PR');
 	}
 
-	let model = opts.grokTask ?? null;
-	if (!model) {
-		const read = readGrokTask(opts.routingText);
-		if (!read.ok) return empty(read.error);
-		model = read.model;
+	if (opts.routingText && PRODUCT_SLUG.test(String(opts.routingText))) {
+		return empty('モデルは指定しない');
 	}
-	if (model !== IMPLEMENT_MODEL) return empty('実装のモデルは grok-4.7-high');
 
 	const tasks = Array.isArray(plan.tasks) ? plan.tasks : null;
 	if (!tasks) return empty('tasks が無い');
@@ -148,14 +134,14 @@ export function planParallelSlices(input, opts = {}) {
 	const concurrent = [];
 	for (const task of writes) {
 		if (overlapped.has(task.id)) parent.push({ id: task.id, files: task.files, reason: 'overlap' });
-		else concurrent.push({ id: task.id, files: task.files, model, seat: 'implement' });
+		else concurrent.push({ id: task.id, files: task.files, seat: 'implement' });
 	}
 
 	return {
 		ok: true,
 		error: '',
 		pr_count: 1,
-		model,
+		model: null,
 		concurrent,
 		parent,
 		later

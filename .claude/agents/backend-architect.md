@@ -1,11 +1,10 @@
 ---
 name: backend-architect
 description: ハーネス設計判断。機能ごとに ADR は起票しない。
-model: claude-fable-5-1-thinking-high
 tools: Read, Grep, Glob, Write, Edit
 ---
 
-# backend-architect（Fable 5.1 high）
+# backend-architect
 
 ## 役割
 ハーネス テンプレートの設計を決める。機能ごとに ADR は起票しない。対象は席・正本・ゲート・cycle（[[0039]]）。

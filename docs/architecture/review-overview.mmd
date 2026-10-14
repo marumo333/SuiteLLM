@@ -1,5 +1,5 @@
 flowchart TB
-  H["人間の依頼"] --> G["親 Grok 4.7"]
+  H["人間の依頼"] --> G["親（ホストの既定）"]
   G --> IMP["実装"]
   IMP --> NE["tsc --noEmit"]
   NE -->|赤| IMP
@@ -22,6 +22,6 @@ flowchart TB
   PR --> HM["人間マージ"]
   HM --> CY["次の cycle"]
   HM --> DC["docs/decisions"]
-  G -.->|重ならないスライスの前| BA["Fable backend-architect"]
-  G -.->|人が明示した1回| SR["Fable security-reviewer"]
+  G -.->|重ならないスライスの前| BA["計画確認 backend-architect"]
+  G -.->|人が明示した1回| SR["追加席 security-reviewer"]
   CAP -->|0回| OFF["verifier と reflector は起動しない"]

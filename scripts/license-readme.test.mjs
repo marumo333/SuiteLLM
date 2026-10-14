@@ -112,7 +112,7 @@ test('README はアーキテクチャ概要の画像だけを示し、mermaid �
 		sources.some(
 			(b) =>
 				/検証は親。重なるファイルも親/.test(b) &&
-				/重ならないスライスは grok-4\.7-high/.test(b) &&
+				/重ならないスライスはホストの既定/.test(b) &&
 				/IMP --> Hook/.test(b) &&
 				/判定のみ/.test(b) &&
 				/cycle-record/.test(b) &&
