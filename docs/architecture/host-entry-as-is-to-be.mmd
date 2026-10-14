@@ -11,7 +11,7 @@ flowchart TB
   subgraph tobe["to-be"]
     TH["to-be"] --> Boot["クラウド起動"]
     Boot --> B0["git clone"]
-    B0 --> B1["起動時に初期化（pnpm install）"]
+    B0 --> B1["起動時に初期化（cycle と docs）"]
     B1 --> HS["Cursor / Claude Code / Codex"]
     HS --> BM["実行モデルはホストの既定"]
     BM --> BG["commit で同じ feature-gate"]

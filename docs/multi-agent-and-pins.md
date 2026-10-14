@@ -42,7 +42,7 @@ flowchart TB
 
 ## クラウドも手元も質問しない
 
-commit hook はホストを聞かない。Cursor の hook も聞かない。git hook は commit で走り、`hooksPath` は `pnpm install` の `prepare` が書く。その install はクラウドでも手元でも CI でも走る。クラウドの起動は git clone のあと `.cursor/environment.json` の install で同じ初期化をする。プロバイダとモデルは聞かない。実行モデルはホストの既定。共有の yaml には書かない。
+commit hook はホストを聞かない。Cursor の hook も聞かない。git hook は commit で走り、`hooksPath` は `pnpm install` の `prepare` が書く。その install はクラウドでも手元でも CI でも走る。クラウドの起動は git clone のあと、プロダクトの remote なら `cycle/` と `docs/` を空の周に戻す。`cycle` の正本 yaml と `docs/decisions/` は残す。このテンプレートの remote では消さない。プロバイダとモデルは聞かない。実行モデルはホストの既定。共有の yaml には書かない。
 
 各ホストは自分の入口を読む。Cursor は `.cursor/hooks.json` とルートの `AGENTS.md`、Claude Code はルートの `AGENTS.md` と `.claude/AGENTS.md` と `.claude/settings.json`、Codex はルートの `AGENTS.md` と `.codex/hooks.json`。`CLAUDE.md` は置かない。置くと既定の Claude は `AGENTS.md` を読まなくなる。スキルは `.claude/skills` にあり、Codex は `.agents/skills` から同じディレクトリを読む。共有のゲートは `host-default` のままである。ホスト名を yaml に書いてモデル ID を割り当てない。図は [`docs/architecture/host-entry-as-is-to-be.mmd`](architecture/host-entry-as-is-to-be.mmd)。
 

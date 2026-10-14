@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { planInit, runInit } from './init.mjs';
+import { FRESH_EVENTS, isTemplateOrigin, planInit, runInit, shouldResetAccumulation, stripLearnings } from './init.mjs';
 
 function root() {
 	return mkdtempSync(join(tmpdir(), 'init-'));
@@ -168,4 +168,81 @@ test('このハーネスでは依存も見出しも足さない', () => {
 	assert.deepEqual(calls, []);
 	assert.equal(existsSync(join(dir, 'GLOSSARY.md')), false);
 	assert.ok(result.lines.some((line) => line.includes('pnpm install')));
+});
+
+const DIARY = `# learnings.md
+
+ハーネスの実行日記だけを書く（[[0039]]）。
+
+---
+
+## 2026-09-11 — 古い日記
+
+本文
+`;
+
+test('テンプレートの remote では cycle と docs を消さない', () => {
+	const dir = root();
+	put(dir, 'policy/canon.rego', 'package harness.canon\n');
+	put(dir, 'package.json', JSON.stringify({ name: 'marumo-cloud' }));
+	put(dir, 'cycle/events.jsonl', `${FRESH_EVENTS}{"type":"node_state"}\n`);
+	put(dir, 'cycle/packets/C-0024.json', '{}\n');
+	put(dir, 'docs/learnings.md', DIARY);
+	put(dir, 'docs/software-factory-survey.md', '調査\n');
+	const result = runInit(dir, {
+		product: true,
+		origin: 'https://github.com/marumo333/marumo333-cloud'
+	});
+	assert.equal(result.ok, true);
+	assert.match(readFileSync(join(dir, 'cycle/events.jsonl'), 'utf8'), /node_state/);
+	assert.equal(readFileSync(join(dir, 'cycle/packets/C-0024.json'), 'utf8'), '{}\n');
+	assert.match(readFileSync(join(dir, 'docs/learnings.md'), 'utf8'), /古い日記/);
+	assert.equal(readFileSync(join(dir, 'docs/software-factory-survey.md'), 'utf8'), '調査\n');
+	assert.ok(result.lines.some((line) => line.includes('テンプレートの蓄積は残す')));
+	assert.equal(isTemplateOrigin('https://x-access-token:secret@github.com/marumo333/marumo333-cloud'), true);
+	assert.equal(shouldResetAccumulation({ product: true, origin: '', harness: true }), false);
+});
+
+test('プロダクトの remote は cycle と docs を空の周に戻す', () => {
+	const dir = root();
+	put(dir, 'policy/canon.rego', 'package harness.canon\n');
+	put(dir, 'package.json', JSON.stringify({ name: 'marumo-cloud' }));
+	put(dir, 'cycle/events.jsonl', `${FRESH_EVENTS}{"type":"node_state","cycle":"C-0024"}\n`);
+	put(dir, 'cycle/required-cycle.json', '残す\n');
+	put(dir, 'cycle/model-routing.yaml', '残す\n');
+	put(dir, 'cycle/code-quality.yaml', '残す\n');
+	put(dir, 'cycle/packets/.gitkeep', '');
+	put(dir, 'cycle/packets/C-0024.json', '{}\n');
+	put(dir, 'cycle/stray.log', '消す\n');
+	put(dir, 'docs/learnings.md', DIARY);
+	put(dir, 'docs/decisions/0039-harness-template-cycle-graph.md', '残す\n');
+	put(dir, 'docs/multi-agent-and-pins.md', '席\n');
+	put(dir, 'docs/architecture/host.gif', 'GIF');
+	put(dir, 'docs/software-factory-survey.md', '調査\n');
+	put(dir, 'docs/behavior-ontology-design.md', '設計\n');
+	const result = runInit(dir, {
+		product: true,
+		origin: 'https://github.com/example/product'
+	});
+	assert.equal(result.ok, true);
+	assert.equal(readFileSync(join(dir, 'cycle/events.jsonl'), 'utf8'), FRESH_EVENTS);
+	assert.equal(readFileSync(join(dir, 'cycle/required-cycle.json'), 'utf8'), '残す\n');
+	assert.equal(readFileSync(join(dir, 'cycle/model-routing.yaml'), 'utf8'), '残す\n');
+	assert.equal(readFileSync(join(dir, 'cycle/code-quality.yaml'), 'utf8'), '残す\n');
+	assert.equal(existsSync(join(dir, 'cycle/packets/.gitkeep')), true);
+	assert.equal(existsSync(join(dir, 'cycle/packets/C-0024.json')), false);
+	assert.equal(existsSync(join(dir, 'cycle/stray.log')), false);
+	const learnings = readFileSync(join(dir, 'docs/learnings.md'), 'utf8');
+	assert.match(learnings, /実行日記だけを書く/);
+	assert.equal(learnings.includes('古い日記'), false);
+	assert.equal(readFileSync(join(dir, 'docs/decisions/0039-harness-template-cycle-graph.md'), 'utf8'), '残す\n');
+	assert.equal(readFileSync(join(dir, 'docs/multi-agent-and-pins.md'), 'utf8'), '席\n');
+	assert.equal(existsSync(join(dir, 'docs/architecture/host.gif')), false);
+	assert.equal(existsSync(join(dir, 'docs/architecture')), false);
+	assert.equal(existsSync(join(dir, 'docs/software-factory-survey.md')), false);
+	assert.equal(existsSync(join(dir, 'docs/behavior-ontology-design.md')), false);
+	assert.ok(result.lines.some((line) => line.includes('蓄積を初期化: cycle/, docs/')));
+	const again = runInit(dir, { product: true, origin: 'https://github.com/example/product' });
+	assert.ok(again.lines.some((line) => line.includes('蓄積は既に空の周')));
+	assert.equal(stripLearnings(learnings), learnings);
 });
