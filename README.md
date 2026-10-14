@@ -36,6 +36,12 @@ Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。�
 
 図は [`docs/architecture/`](docs/architecture/) のアーキテクチャ概要。実線は実行、破線は条件付きか判定のみ。編集する正は同ディレクトリの mermaid（[`review-overview.mmd`](docs/architecture/review-overview.mmd) ほか）。README には画像だけを出す。
 
+### 入口
+
+clone のあと、プロバイダとモデルを選ぶ段は無い。開くアプリは人が既に決めている。`pnpm install` は git hook を書くだけで、ホスト名もモデル ID も聞かない。as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は三つの入口が同じ `AGENTS.md` を読み、実行モデルはホストの既定である。
+
+![入口の as-is と to-be](docs/architecture/host-entry-as-is-to-be.gif)
+
 ### モデルとレビュー
 
 常時の席は親である。実行モデルはホストの既定。計画確認のあと、ファイルが重ならないスライスはホストの既定で同時に進めるのが既定。重なるファイルは親が書く。枝に分けて後からマージする十数体は入れない。完成は 1 本の PR。型の正解は `tsc --noEmit`。品質の指摘は親が1回、4つに分ける。コードを変えるのは直すだけ。緑のあと二周目は開かない。backend-architect は重ならないスライスの前だけ、security-reviewer は人が明示した1回だけ。verifier と reflector は起動せず、feature-gate が 0 回で拒否する。

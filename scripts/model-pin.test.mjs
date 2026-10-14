@@ -38,7 +38,8 @@ const LIVING = [
 	'.claude/agents/reflector.md',
 	'docs/architecture/review-overview.mmd',
 	'docs/architecture/runtime-overview.mmd',
-	'docs/architecture/audit-overview.mmd'
+	'docs/architecture/audit-overview.mmd',
+	'docs/architecture/host-entry-as-is-to-be.mmd'
 ];
 
 test('どの agent の frontmatter にも model を置かない', () => {
@@ -115,6 +116,14 @@ test('Cursor と Claude Code と Codex は同じ契約の入口を持つ', () =>
 	const pins = read('docs/multi-agent-and-pins.md');
 	assert.match(pins, /Claude Code はルートの `AGENTS.md`/);
 	assert.match(pins, /`CLAUDE.md` は置かない/);
+	const hostFig = read('docs/architecture/host-entry-as-is-to-be.mmd');
+	assert.match(hostFig, /プロバイダ選択とモデル選択は置かない/);
+	assert.match(hostFig, /質問しない/);
+	assert.match(hostFig, /CLAUDE.md は置かない/);
+	assert.match(hostFig, /実行モデルはホストの既定/);
+	assert.match(hostFig, /yaml が製品スラッグを名指し/);
+	assert.doesNotMatch(hostFig, PRODUCT_SLUG);
+	assert.match(read('README.md'), /docs\/architecture\/host-entry-as-is-to-be\.gif/);
 
 	const claudeHooks = read('.claude/settings.json');
 	const codexHooks = read('.codex/hooks.json');

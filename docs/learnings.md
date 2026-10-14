@@ -766,3 +766,19 @@
 **失敗 / リスク**
 
 - 利用者が `claude-md-and-agents-md` にしていない既定では、`CLAUDE.md` を戻すと共有契約が再び隠れる。個人の `~/.claude/CLAUDE.md` はリポジトリの `AGENTS.md` を消さない。
+
+---
+
+## 2026-10-14 — clone 後にプロバイダとモデルは選ばせない
+
+**問い**
+
+- Claude、Cursor、Codex で clone したあと、hook が初期化してプロバイダとモデルを選ばせるか。
+
+**効いた**
+
+- 選ばせない。as-is にも選択画面は無い。as-is は契約が製品スラッグを名指し、動く入口は `.cursor/hooks.json` だけだった。to-be は名指しをやめ、開いているアプリの既定に任せる。`pnpm install` が書くのは git の commit hook だけである。図は `docs/architecture/host-entry-as-is-to-be.mmd`。
+
+**失敗 / リスク**
+
+- アプリ自身の設定画面がモデルを聞くことはある。このリポジトリの hook は、その答えを yaml に書かない。

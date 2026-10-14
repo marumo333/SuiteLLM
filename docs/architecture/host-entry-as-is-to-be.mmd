@@ -1,0 +1,28 @@
+%%{init: {"flowchart": {"wrappingWidth": 420, "padding": 16}}}%%
+flowchart TB
+  subgraph asis["as-is main"]
+    direction LR
+    A0["clone"] --> A1["pnpm install が git hook を書く"]
+    A1 --> A2["契約文は Cursor ハーネス"]
+    A2 --> A3["動く入口は .cursor/hooks.json"]
+    A3 --> A4["yaml が製品スラッグを名指し"]
+    A4 --> A5["実行モデルは契約が指定"]
+    A1 -.-> A6["選択画面は無い"]
+  end
+
+  A5 ==>|変更| B0
+
+  subgraph tobe["to-be この枝"]
+    direction TB
+    B0["clone"] --> B1["開くアプリは人が既に決めている"]
+    B1 --> B2["pnpm install は git hook だけ。質問しない"]
+    B2 --> CU["Cursor は .cursor/hooks.json と AGENTS.md"]
+    B2 --> CL["Claude は AGENTS.md と .claude/settings.json"]
+    B2 --> CX["Codex は AGENTS.md と .codex/hooks.json"]
+    CU --> BM["実行モデルはホストの既定"]
+    CL --> BM
+    CX --> BM
+    BM --> BG["commit で同じ feature-gate"]
+    B2 -.-> NO["プロバイダ選択とモデル選択は置かない"]
+    CL -.-> MD["CLAUDE.md は置かない"]
+  end
