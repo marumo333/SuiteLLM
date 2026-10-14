@@ -40,6 +40,12 @@ flowchart TB
 
 `dispatch_seats` の `verify: opus` や `muse` は、世代のピンではない。記録してよい席トークンが残っている、という別の問題である。yaml は実行時にパースされない。実行される写しは `scripts/lib/packet-policy.mjs` の `SEATS_BY_NODE` と `packet.rego` の `seats` と `scripts/cycle-record.mjs` の `SEATS` である。この変更では席の集合は削らない。
 
+## hook はホストを聞かない
+
+clone の直後に Codex、Claude、Cursor のどれかを聞いて割り当てることはしない。git hook は commit で走り、`hooksPath` は `pnpm install` の `prepare` が書く。その install は CI でも走る。質問はそこでは答えられない。Cursor の hook は、ホストが既に Cursor のときだけ動く。Codex と Claude はそのファイルを実行しない。聞ける時点では、ホストは決まっている。
+
+各ホストは自分の入口を読む。Cursor は `.cursor/hooks.json`、Claude は `.claude/`、Codex はルートの `AGENTS.md`。共有のゲートは `host-default` のままである。ホスト名を yaml に書いてモデル ID を割り当てない。
+
 ## 重ならないスライスは同時に進め、重なるファイルは親が書く
 
 常時の席が親一人であることと、ファイルが重ならないスライスを同時に進めることは、同じ席表ではない。

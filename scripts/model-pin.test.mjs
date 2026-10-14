@@ -69,6 +69,34 @@ test('生きた契約に製品スラッグを書かず、席トークンは残�
 	assert.match(read('README.md'), /docs\/multi-agent-and-pins\.md/);
 });
 
+test('clone と hook はホストを聞かず、モデルを割り当てない', () => {
+	const files = [
+		'scripts/init.mjs',
+		'scripts/install-git-hooks.mjs',
+		'scripts/lib/run-pre-commit.mjs',
+		'scripts/githooks/pre-commit',
+		'scripts/githooks/commit-msg',
+		'scripts/githooks/pre-merge-commit',
+		'.cursor/hooks.json',
+		'.cursor/hooks/pre-commit.mjs',
+		'.cursor/hooks/block-env-read.mjs',
+		'.cursor/hooks/code-mode.mjs',
+		'.claude/hooks/pre_commit_guard.mjs',
+		'.claude/hooks/block_env_read.mjs',
+		'.claude/hooks/block_secret_write.mjs',
+		'.claude/hooks/post_task_reflect.mjs'
+	];
+	for (const rel of files) {
+		const text = read(rel);
+		assert.doesNotMatch(text, /readline|createInterface|isTTY|process\.stdin/, rel);
+		assert.doesNotMatch(text, /codex か|Claude か|Cursor か/, rel);
+	}
+	const pins = read('docs/multi-agent-and-pins.md');
+	assert.match(pins, /hook はホストを聞かない/);
+	assert.match(pins, /各ホストは自分の入口を読む/);
+	assert.match(pins, /ホスト名を yaml に書いてモデル ID を割り当てない/);
+});
+
 test('重ならないスライスは計画確認のあとホストの既定で同時に進める', () => {
 	const agents = read('.claude/AGENTS.md');
 	assert.match(agents, /ファイルが重ならないスライスはホストの既定で同時に進めるのが既定/);
