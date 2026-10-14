@@ -81,3 +81,16 @@ test('セキュリティ・振る舞い・設計は1回の読みに含め、観�
 	assert.match(budget, /観点ごとに席は増やさない/);
 	assert.match(budget, /3体のレビューは起動しない/);
 });
+
+test('機械ゲートと親の3観点は人が頼まなくても走り、追加席だけが人を待つ', () => {
+	const skill = read('.claude/skills/adversarial-review/SKILL.md');
+	assert.match(skill, /人がレビューを頼まなくても/);
+	assert.match(skill, /追加の Fable 席だけ/);
+	const budget = read('.claude/skills/harness-api-budget/SKILL.md');
+	assert.match(budget, /人が頼まなくても行う/);
+	assert.match(budget, /追加の Fable だけが人の明示を待つ/);
+	const template = read('TEMPLATE.md');
+	assert.match(template, /人が頼まなくても commit で走る/);
+	assert.match(template, /エージェントは自動起動しない/);
+	assert.match(read('scripts/lib/run-pre-commit.mjs'), /feature-gate\.mjs/);
+});
