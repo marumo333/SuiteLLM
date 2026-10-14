@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * .env 読み取りブロック（規約1）。
- * - Claude Code PreToolUse(Bash): tool_input.command を検査 → 拒否は exit 2
- * - Cursor beforeShellExecution / beforeReadFile: JSON で拒否
+ * - Claude Code / Codex PreToolUse: tool_input.command を検査 → 拒否は exit 2
+ * - Cursor beforeShellExecution / beforeReadFile: トップレベル command / filePath か、それ以外の非 PreToolUse で JSON 拒否
  */
 import { readFileSync } from 'node:fs';
 import {
@@ -32,12 +32,7 @@ const SHELL_ENV_READ =
 const isEnvFile = /(^|\/)\.env(\.[^/]+)?$/.test(filePath) && !/\.env\.example$/.test(filePath);
 const isShellHit = cmd.length > 0 && SHELL_ENV_READ.test(cmd);
 
-const isCursor =
-	data.permission !== undefined ||
-	data.command !== undefined ||
-	data.filePath !== undefined ||
-	data.hook_event_name !== undefined ||
-	typeof data.cwd === 'string';
+const isPreToolUse = data.hook_event_name === 'PreToolUse';
 
 function denyCursor(message) {
 	process.stdout.write(
@@ -57,7 +52,7 @@ function allowCursor() {
 
 if (isBlockedDependencyPath(filePath) || commandTouchesDependency(cmd)) {
 	const msg = '[block_env_read] node_modules と .tools は読まない。';
-	if (isCursor) denyCursor(msg);
+	if (!isPreToolUse) denyCursor(msg);
 	console.error(msg);
 	process.exit(2);
 }
@@ -65,7 +60,7 @@ if (isBlockedDependencyPath(filePath) || commandTouchesDependency(cmd)) {
 if (commandDropsSearchLines(cmd)) {
 	const msg =
 		'[block_env_read] 検索は一致行を残す。ファイル名だけと件数だけは使わない。node scripts/search-lines.mjs か rg -n。';
-	if (isCursor) denyCursor(msg);
+	if (!isPreToolUse) denyCursor(msg);
 	console.error(msg);
 	process.exit(2);
 }
@@ -73,10 +68,10 @@ if (commandDropsSearchLines(cmd)) {
 if (isEnvFile || isShellHit) {
 	const msg =
 		'[block_env_read] 規約1: .env / シークレット環境変数の読み取りは禁止（人間がパイプ渡し）。';
-	if (isCursor) denyCursor(msg);
+	if (!isPreToolUse) denyCursor(msg);
 	console.error(msg);
 	process.exit(2);
 }
 
-if (isCursor) allowCursor();
+if (!isPreToolUse) allowCursor();
 process.exit(0);

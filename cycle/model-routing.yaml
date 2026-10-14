@@ -1,31 +1,27 @@
 # ハーネス席 — ADR 0031 / 0033 / 0037 / 0039 / 0040 / 0046 / 0047 / 0049
-# 親も Task も grok-4.7-high。cursor- 接頭辞は 4.7 で消えた。
-# fast / xhigh / 裸の grok-4.7 はピンにも予備にも書かない（[[0049]]）。
-# 第3は medium を明示する。Muse の公式既定 high には上げない。
+# 実行モデルはホストの既定。製品スラッグは書かない。
+# ゲートの席トークン（grok / fable / opus / muse）は入場語彙であり、ホストのカタログではない。
+# 第3の effort は medium。high には上げない。
 # 検証用 subagent は起動しない（[[0051]]）。opus_gates と review_trio は空。
 harness_agents:
-  chat_orchestrator: grok-4.7-high
-  grok_task: grok-4.7-high
+  model: host-default
   fable_gates:
     - plan-confirm
   opus_gates: []
   review_trio: []
-  # 使わないスラッグは書かない。Sonnet / Sol / Terra / Luna は席が無い。
-  fable_pin: claude-fable-5-1-thinking-high
   budget_guards:
-    parent_chat: grok-only
+    parent_chat: host-default
     gate_input: artifacts-only
     third_lens_seat: none
-    no_sol_terra_luna: true
-    fable_seat: plan-confirm-only
+    no_named_model: true
+    extra_seat: human-requested-once
     opus_seat: do-not-dispatch
     trio_when: never
     plan_confirm_when: before-fanout-only
     no_generic_task_as_gate: true
     no_fable_opus_cohabit_trio: true
-    fable_guardrail_fallback_is_fail: true
-# 親と実装の既定は high（[[0049]]）。medium は許可に残し、ピンにはしない。
-# 0044 の「high-fast しか無い」例外は消滅した。fast はピンにしない。
+    product_slug_required: false
+# 親と実装の既定 effort は high（[[0049]]）。medium は許可に残し、ピンにはしない。
 # 幅1の上書きは packet.rego が deny。ゲートを親が下げることも不可。
 effort_defaults:
   parent: high

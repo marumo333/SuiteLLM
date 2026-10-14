@@ -1,11 +1,12 @@
+%%{init: {"flowchart": {"useMaxWidth": false, "htmlLabels": true, "wrappingWidth": 280, "padding": 16, "nodeSpacing": 40, "rankSpacing": 48, "diagramPadding": 28}}}%%
 flowchart LR
   subgraph seats["席"]
     direction TB
-    G["親 Grok 4.7"]
+    G["親（ホストの既定）"]
     IMP["検証は親。重なるファイルも親"]
-    PAR["重ならないスライスは grok-4.7-high"]
+    PAR["重ならないスライスはホストの既定"]
     Rec["cycle-record"]
-    BA["Fable は条件付き"]
+    BA["追加席は人が明示したとき"]
     OFF["verifier と reflector は起動しない"]
   end
 

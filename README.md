@@ -1,17 +1,16 @@
 # marumo-cloud
 
-Cursor ハーネスの**テンプレート**。対象は席・正本・ゲート・cycle（[ADR 0039](docs/decisions/0039-harness-template-cycle-graph.md)）。
+Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。対象は席・正本・ゲート・cycle（[ADR 0039](docs/decisions/0039-harness-template-cycle-graph.md)）。
 ライセンスは [MIT](LICENSE)（Copyright (c) 2026 marumo333）。
 
 ## 実行環境
 
-開発の正は **Cursor のクラウド**（Cloud Agent）と GitHub Actions（`ubuntu-latest`）。
-ゲート（`feature-gate` / OPA）は Linux amd64 にピン留めする。macOS / Windows / Linux arm64 では動かない。
+開発は Cursor、Claude Code、Codex。ゲート（`feature-gate` / OPA）は Linux amd64 の CI と、各ホストの commit 前 hook で通す。macOS / Windows / Linux arm64 ではゲートは動かない。
 手元の clone は閲覧と空リポへの載せに使う。commit とゲートはクラウドまたは Actions で通す。
 
 ## 何をするか
 
-- 席: 親 Grok 4.7 high。検証は親が契約と feature-gate を実行する。検証用の subagent は出さない
+- 席: 親はホストの既定。モデル ID は指定しない。検証は親が契約と feature-gate を実行する。検証用の subagent は出さない
 - 機能の正本は `features/<slug>/` の振る舞いとテスト。機能ごとに ADR、レビュー、proposed、admitted は作らない
 - ゲート: OPA `node scripts/feature-gate.mjs`（自己改善ループそのものではない）
 - 管理: skill の使用/省略を `cycle/` に書き、ノード / 辺 / 状態の3指標で計る
@@ -21,9 +20,19 @@ Cursor ハーネスの**テンプレート**。対象は席・正本・ゲート
 
 手順の本体は [TEMPLATE.md](TEMPLATE.md)。
 
+## 3つのプロバイダ
+
+対応するのは Cursor、Claude Code、Codex の3つ。どれで開いても同じ [`AGENTS.md`](AGENTS.md) と [`.claude/AGENTS.md`](.claude/AGENTS.md) を読む。
+
+- Cursor は `.cursor/hooks.json` と `AGENTS.md`
+- Claude Code は `AGENTS.md` と `.claude/AGENTS.md` と `.claude/settings.json`
+- Codex は `AGENTS.md` と `.codex/hooks.json`
+
+`CLAUDE.md` は置かない。スキルは `.claude/skills` にあり、Codex は `.agents/skills` から同じディレクトリを読む。手元の端末では `pnpm install` のあと、この3つから一度だけ選ぶ。空欄のモデルはホストの既定。CI と commit hook は質問しない。
+
 ## 最初にやること
 
-Cursor のクラウドでリポを開く。このリポジトリの clone 後は `pnpm install`（hooks も入る）。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
+どのホストでも clone 後は `pnpm install`（git hooks も入る）。手元の端末なら、そのあとプロバイダとモデルを一度だけ選ぶ。CI では聞かない。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
 
 空リポへ載せる手順は [TEMPLATE.md](TEMPLATE.md)。
 完了はクラウドまたは Actions 上で `node scripts/feature-gate.mjs` が緑であること。ハーネスにテストがある変更は `pnpm test` が緑であること（[ADR 0016](docs/decisions/0016-definition-of-done.md)）。
@@ -33,15 +42,21 @@ Cursor のクラウドでリポを開く。このリポジトリの clone 後は
 このハーネスは席・ゲート・cycle で回る。入力は人間の依頼と `features/<slug>/` の振る舞い、
 実行は席、token効率化は code-mode と packet、品質ゲートは hooks / OPA / feature-gate、
 成果は振る舞いのテストと `docs/decisions/` と policy、フィードバックは次の cycle である。
-監査の主体は親 Grok 4.7 high である。Uber の Gateway や艦隊は置かない。feature-gate は OPA の検査と契約とレビュー上限を実行する。canon の一覧は opa test が検査し、差分の被覆には使わない。正本へは書かない。
+監査の主体は親である。モデル ID は指定しない。Uber の Gateway や艦隊は置かない。feature-gate は OPA の検査と契約とレビュー上限を実行する。canon の一覧は opa test が検査し、差分の被覆には使わない。正本へは書かない。
 
 図は [`docs/architecture/`](docs/architecture/) のアーキテクチャ概要。実線は実行、破線は条件付きか判定のみ。編集する正は同ディレクトリの mermaid（[`review-overview.mmd`](docs/architecture/review-overview.mmd) ほか）。README には画像だけを出す。
 
+### 入口
+
+as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は三つの入口が同じ `AGENTS.md` を読む。手元の端末なら `pnpm install` のあと一度だけプロバイダとモデルを選ぶ。空欄のモデルはホストの既定。CI と commit hook は質問しない。答えは共有の yaml には書かない。
+
+![入口の as-is と to-be](docs/architecture/host-entry-as-is-to-be.gif)
+
 ### モデルとレビュー
 
-常時の席は親エージェント Grok 4.7 high である。計画確認のあと、ファイルが重ならないスライスは `grok-4.7-high` で同時に進めるのが既定。重なるファイルは親が書く。枝に分けて後からマージする十数体は入れない。完成は 1 本の PR。型の正解は `tsc --noEmit`。品質の指摘は親が1回、4つに分ける。コードを変えるのは直すだけ。緑のあと二周目は開かない。Fable の backend-architect は重ならないスライスの前だけ、security-reviewer は人が明示した1回だけ。verifier と reflector は起動せず、feature-gate が 0 回で拒否する。
+常時の席は親である。実行モデルはホストの既定。計画確認のあと、ファイルが重ならないスライスはホストの既定で同時に進めるのが既定。重なるファイルは親が書く。枝に分けて後からマージする十数体は入れない。完成は 1 本の PR。型の正解は `tsc --noEmit`。品質の指摘は親が1回、4つに分ける。コードを変えるのは直すだけ。緑のあと二周目は開かない。backend-architect は重ならないスライスの前だけ、security-reviewer は人が明示した1回だけ。verifier と reflector は起動せず、feature-gate が 0 回で拒否する。
 
-モデルは三層に分ける。生きている席のスラッグは `cycle/model-routing.yaml` と skill に書く。親と `grok_task` は `grok-4.7-high`。計画と人が明示したレビューは `fable_pin`。ゲートが見るのは族名と件数と effort の幅で、世代のスラッグは見ない。起動しない verifier と reflector の定義に `model:` は置かない。使わないスラッグは yaml に残さない。
+モデル ID は指定しない。役割と effort は `cycle/model-routing.yaml` に残す。ゲートが見るのは席トークンと件数と effort の幅で、ホストの製品スラッグは見ない。どの agent の定義にも `model:` は置かない。根拠は [モデルの層と並列実行](docs/multi-agent-and-pins.md)。
 
 実行の一覧は Cursor のクラウド実行面で見る。このリポジトリは席の許可とゲートである。数十体を `packet.rego` の席にはしない。根拠は [モデルの層と並列実行](docs/multi-agent-and-pins.md)。
 
@@ -72,8 +87,11 @@ hooks を踏むのは実装の commit。feature-gate は判定であり正本へ
 ## 構成
 
 ```
-.claude/          エージェント / skill / hook
+AGENTS.md         Cursor、Claude Code、Codex が読む契約
+.claude/          Claude Code のエージェント / skill / hook
 .cursor/          Cursor の hook
+.codex/           Codex の hook
+.agents/skills    Codex から .claude/skills を見る
 docs/decisions/   人の判断
 docs/learnings.md 実行のメモ
 cycle/            cycle の記録と席のピン

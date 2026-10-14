@@ -1,6 +1,6 @@
 # AGENTS.md
 
-このリポジトリは Cursor ハーネスのテンプレート。対象は席・正本・ゲート・cycle。手順は [`TEMPLATE.md`](TEMPLATE.md)、エージェント向けの規約は [`.claude/AGENTS.md`](.claude/AGENTS.md)。人の判断は [`docs/decisions/`](docs/decisions/) と [`docs/learnings.md`](docs/learnings.md) に残す。
+このリポジトリは Cursor、Claude Code、Codex で同じ契約を使うテンプレート。対象は席・正本・ゲート・cycle。手順は [`TEMPLATE.md`](TEMPLATE.md)、エージェント向けの規約は [`.claude/AGENTS.md`](.claude/AGENTS.md)。Claude Code もこの `AGENTS.md` と [`.claude/AGENTS.md`](.claude/AGENTS.md) を読む。`CLAUDE.md` は置かない。Codex は `.codex/hooks.json` も読む。人の判断は [`docs/decisions/`](docs/decisions/) と [`docs/learnings.md`](docs/learnings.md) に残す。モデル ID は指定しない。
 
 ## Cursor Cloud specific instructions
 
@@ -20,7 +20,7 @@ Node.js 製のガバナンスハーネス。npm 依存パッケージは無い�
 
 ### コマンド（lint / test / build / run に相当）
 
-- 依存導入 + git hooks 設定: `pnpm install`（`prepare` が `core.hooksPath=scripts/githooks` を設定）。
+- 依存導入 + git hooks 設定: `pnpm install`（`prepare` が `core.hooksPath=scripts/githooks` を設定）。手元の端末なら、そのあとプロバイダとモデルを一度だけ選ぶ。CI と commit hook は聞かない。答えは共有の yaml には書かない。
 - 自動テスト: `pnpm test`（`node --test`）。
 - ポリシー lint / test（OPA のみ）: `node scripts/feature-gate.mjs --test`。
 - 正本ゲート本体（build/run 相当）: `node scripts/feature-gate.mjs`。見る範囲は `policy/canon.rego`。Feature 票は作らない。
@@ -30,4 +30,4 @@ Node.js 製のガバナンスハーネス。npm 依存パッケージは無い�
 - Cursor の `beforeShellExecution` ガード（`.cursor/hooks/pre-commit.mjs` → `scripts/lib/commit-guard.mjs`）は、**シェルコマンド文字列に `git config ... hooksPath` が含まれるだけで（読み取り目的でも）拒否する**。hooksPath を確認したいときは `.git/config` を読む（例: `grep hooksPath .git/config`）。同様に `git commit --no-verify` / `-n` も拒否される。
 - コミットメッセージは conventional prefix + 日本語主語が必須（`feat:` / `fix:` / `docs:` / `chore:` など）。英語のみの主語や prefix 無しは commit-msg hook に落とされる。`--no-verify` は禁止。
 - ルートの `AGENTS.md` は canon ではない（canon は `.claude/AGENTS.md`）。どのパスも Feature 票は要らない。
-- モデルのスラッグは生きている席だけ `cycle/model-routing.yaml` と skill に書く。起動しない verifier / reflector に `model:` は置かない。ゲートは族名と件数と effort を見る。計画確認のあと、ファイルが重ならないスライスは `grok-4.7-high` で同時に進めるのが既定。重なるファイルは親が書く。枝に分けて後からマージする十数体は入れない。完成は 1 本の PR。席は増やさない（`docs/multi-agent-and-pins.md`）。
+- モデル ID は指定しない。実行はホストの既定。どの agent の frontmatter にも `model:` は置かない。ゲートは席トークンと件数と effort を見る。計画確認のあと、ファイルが重ならないスライスはホストの既定で同時に進めるのが既定。重なるファイルは親が書く。枝に分けて後からマージする十数体は入れない。完成は 1 本の PR。席は増やさない（`docs/multi-agent-and-pins.md`）。

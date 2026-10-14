@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { planParallelSlices, readGrokTask } from './lib/parallel-slices.mjs';
+import { planParallelSlices } from './lib/parallel-slices.mjs';
 import { DISPATCH_CAP } from './lib/review-cap.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -17,11 +17,14 @@ function plan(tasks, extra = {}) {
 	);
 }
 
-test('yaml の grok_task は grok-4.7-high', () => {
-	assert.deepEqual(readGrokTask(routingText), { ok: true, model: 'grok-4.7-high' });
+test('生きた yaml に製品スラッグが無いとき同時実行できる', () => {
+	assert.doesNotMatch(routingText, /grok-\d|claude-[a-z0-9]/);
+	const got = plan([{ id: 'a', files: ['src/a.js'] }]);
+	assert.equal(got.ok, true);
+	assert.equal(got.model, null);
 });
 
-test('重ならない書き込みは grok-4.7-high で同時に進み、PR は 1 本', () => {
+test('重ならない書き込みはホストの既定で同時に進み、PR は 1 本', () => {
 	const got = plan([
 		{ id: 'a', files: ['src/a.js'] },
 		{ id: 'b', files: ['./src/b.js'] },
@@ -29,12 +32,12 @@ test('重ならない書き込みは grok-4.7-high で同時に進み、PR は 1
 	]);
 	assert.equal(got.ok, true);
 	assert.equal(got.pr_count, 1);
-	assert.equal(got.model, 'grok-4.7-high');
+	assert.equal(got.model, null);
 	assert.deepEqual(
 		got.concurrent.map((t) => t.id),
 		['a', 'b', 'c']
 	);
-	assert.ok(got.concurrent.every((t) => t.model === 'grok-4.7-high' && t.seat === 'implement'));
+	assert.ok(got.concurrent.every((t) => t.model == null && t.seat === 'implement'));
 	assert.deepEqual(got.parent, []);
 });
 
@@ -87,10 +90,10 @@ test('枝分けと PR の分割は拒否する', () => {
 	assert.equal(plan(tasks, { pr_count: 12 }).error, '完成は 1 本の PR');
 });
 
-test('Opus と extra-high は実装に付けない', () => {
+test('実装スライスにモデルを書かない', () => {
 	assert.equal(
 		plan([{ id: 'a', files: ['src/a.js'], model: 'claude-opus-5-5-high' }]).error,
-		'実装席を Opus に付け替えない'
+		'モデルは指定しない'
 	);
 	assert.equal(
 		plan([{ id: 'a', files: ['src/a.js'], seat: 'opus' }]).error,
@@ -98,18 +101,16 @@ test('Opus と extra-high は実装に付けない', () => {
 	);
 	assert.equal(
 		plan([{ id: 'a', files: ['src/a.js'], model: 'grok-4.7-xhigh' }]).error,
-		'extra-high は使わない'
+		'モデルは指定しない'
 	);
 	assert.equal(
-		plan([{ id: 'a', files: ['src/a.js'], model: 'extra-high' }]).error,
-		'extra-high は使わない'
+		plan([{ id: 'a', files: ['src/a.js'], model: 'grok-4.7' }]).error,
+		'モデルは指定しない'
 	);
-});
-
-test('裸の grok-4.7 は grok-4.7-high として同時実行する', () => {
-	const got = plan([{ id: 'a', files: ['src/a.js'], model: 'grok-4.7' }]);
-	assert.equal(got.ok, true);
-	assert.equal(got.concurrent[0].model, 'grok-4.7-high');
+	assert.equal(
+		plan([{ id: 'a', files: ['src/a.js'], model: 'host-default' }]).error,
+		'モデルは指定しない'
+	);
 });
 
 test('読み取りと依存は同時実行に入らない', () => {

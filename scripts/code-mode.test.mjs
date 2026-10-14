@@ -1,8 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
 	decideCodeModeGuard,
 	isCodeModeCommand,
@@ -79,4 +81,22 @@ test('要約が上限を超えたら truncate せず失敗', () => {
 	assert.equal(r.ok, false);
 	assert.ok(String(r.error).includes('上限'));
 	assert.equal(JSON.stringify(r).includes(big), false);
+});
+
+test('Claude と Codex の code-mode hook は照会の連鎖を exit 2 で止める', () => {
+	const hook = join(dirname(fileURLToPath(import.meta.url)), '../.claude/hooks/code_mode_guard.mjs');
+	const denied = spawnSync(process.execPath, [hook], {
+		input: JSON.stringify({
+			hook_event_name: 'PreToolUse',
+			tool_input: { command: 'git status -sb && git diff --stat' }
+		}),
+		encoding: 'utf8'
+	});
+	assert.equal(denied.status, 2);
+	assert.match(denied.stderr, /code-mode/);
+	const allowed = spawnSync(process.execPath, [hook], {
+		input: JSON.stringify({ tool_input: { command: 'git status -sb' } }),
+		encoding: 'utf8'
+	});
+	assert.equal(allowed.status, 0);
 });

@@ -18,7 +18,7 @@ git push -u origin main
 
 ## このリポジトリを始める（clone のあと）
 
-`pnpm install` を叩く。`prepare` が git hooks を入れる。commit 主語は `feat:` / `docs:` 等 + 日本語。`--no-verify` は拒否される（[[0042]]）。
+`pnpm install` を叩く。`prepare` が git hooks を入れる。手元の端末なら、プロバイダとモデルを一度だけ聞く。空欄のモデルはホストの既定。CI では聞かない。commit 主語は `feat:` / `docs:` 等 + 日本語。`--no-verify` は拒否される（[[0042]]）。
 
 機能ごとに ADR、レビュー、proposed、admitted は作らない。
 
@@ -38,6 +38,6 @@ node scripts/check-behavior.mjs
 
 ## 1周
 
-1. 親は Grok 4.7 high。検証と内省は親が行う。検証用の subagent は出さない。
+1. 親はホストの既定。モデル ID は指定しない。検証と内省は親が行う。検証用の subagent は出さない。品質の機械ゲートは人が頼まなくても commit で走る。追加のモデル席は人が明示した1回だけ。
 2. 機能は `node scripts/start-feature.mjs <slug>` の振る舞いとテストで進める。
 3. 人間がマージすると次の cycle が開く。Feature 票は開かない。エージェントは自動起動しない。

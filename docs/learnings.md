@@ -641,3 +641,161 @@
 
 - `dispatch_seats` の `verify: opus` と `muse` は残した。記録してよい族の削除は、世代のピンとは別の変更である。
 - この PR の CI は、まだ main の旧 `feature-gate.mjs` を実行する。子を隣から呼ぶ形は、そのスクリプトが main に入ったあとから効く。
+
+---
+
+## 2026-10-12 — ハーネス学習は保持規則だけを入れる
+
+**問い**
+
+- arXiv:2609.35738 の harness learning を入れるべきか。近い仕組みは既にあるか。
+
+**効いた**
+
+- 論文は、凍結した solver に対し proposer が実行結果でハーネスを書き換え、その点数を報酬に学習する。テスト時は重みを更新しない。Reasoning Gym では開発点数が親を上回るときだけ残す。評価問は採点から外す。
+- 既存は `docs/learnings.md`、feature-gate の合否、空の `policy/learned/`、`harness-audit`、`observation-fold`、cycle の3指標である。候補と親の平均点数を比べて残す規則は無かった。
+- 入れたのはその保持規則だけである。`scripts/lib/revision-select.mjs`。妥当性は報告に残し、保持には使わない。下回る候補は残さない。`cycle/revision.json` があるときだけ feature-gate が同じ判定をする。
+- 入れなかったのは proposer の重み学習、新しい席、下回っても最高点を採用する手順、緑のテスト通過率を改善点数にすること。
+
+**失敗 / リスク**
+
+- 点数は呼び出し側が渡す。記録が無い commit は止まらない。偽の点数は集合の分離と、記録した保持が計算と一致することまでしか止められない。
+- 指摘は1回。`--file` が無いときの未捕捉例外は直した。同点の浮動小数と、親と候補が同じ id の場合は検討のまま。feature-gate の例外ラップは contract-check と同じなので却下した。
+
+---
+
+## 2026-10-14 — 採点改訂は外し、レビュー観点は1回にまとめる
+
+**問い**
+
+- 近い仕組みがあるなら、採点による保持規則は不要か。
+- PR とセキュリティレビューを、セキュリティ、ユースケース、設計の3エージェントにすべきか。
+
+**効いた**
+
+- 採点改訂は外した。feature-gate、契約、4分類が既に入場を見ていて、呼び出し側の点数には採点器が無かった。
+- 3エージェントにはしない。CR-Bench（arXiv:2603.11078）は Reflexion で再現率が上がり信号対雑音比が落ちる。Adversarial Review（arXiv:2608.18167）はレビューと批判の3体が5体より良いが、トークンは zero-shot より多く、易しい差分では浪費になる。同じ差分を専門家5人が読み直すと入力を5回払う（Main Branch, 2026）。Librarian（arXiv:2605.27787）は共有要約でその重複を減らす。こちらは packet と code-mode と observation-fold が既にその役である。
+- セキュリティ、振る舞い、設計は、親の1回と、人が明示した Fable 1回の同じ読みに含める。観点ごとに席は増やさない。review-cap は変えない。
+
+**失敗 / リスク**
+
+- 観点を手順に書いても、親が読まなければ取りこぼす。取りこぼしを席で埋めると、前に測った雑音とトークンが戻る。
+- Qodo や CodeRabbit の専門エージェントは再現率を上げると自社が書く。独立した信号対雑音比は、この変更の根拠にしていない。
+
+---
+
+## 2026-10-14 — 人が頼まない品質はゲートであり、追加席ではない
+
+**問い**
+
+- 人が明示しないとレビューが起動しないと、品質とトークン効率を両立した工場にならないか。
+
+**効いた**
+
+- 人が待つのは追加の Fable 席と、main へのマージである。feature-gate と契約は pre-commit と CI が、頼まれなくても走る。親の3観点も、実装のあとに頼まれなくても行う、と手順へ書いた。
+- 追加席を毎変更で起動すると、同じ差分の再読が工場の定常費になる。CR-Bench ではその再読が信号対雑音比を落とす。トークンを減らす工場は、モデルを足す前に決定的なゲートを毎回通す。
+
+**失敗 / リスク**
+
+- 手順は親が読んだときだけ効く。読まない親を、席の自動起動では直せない。直せるのは commit が落とすゲートである。
+
+---
+
+## 2026-10-14 — 製品スラッグはホストのカタログであり、契約ではない
+
+**問い**
+
+- Cursor 以外のクラウドでも同じハーネスを使うなら、モデル指定は無くすか。
+
+**効いた**
+
+- 生きた契約から製品スラッグを外した。実行はホストの既定。どの agent の frontmatter にも `model:` は置かない。実装スライスにモデル ID を書くと `parallel-slices` が拒否する。
+- 残したのは役割、件数、effort、そして packet の席トークン（`grok` / `fable` / `opus` / `muse`）である。席トークンは入場語彙であり、ホストのモデル ID ではない。歴史の ADR は書き換えていない。
+
+**失敗 / リスク**
+
+- 席トークンの名前は、まだ特定の製品族に見える。ゲートの検査語彙を一度に捨てると、件数と effort の拒否まで巻き込む。今回は製品スラッグだけを外した。
+
+---
+
+## 2026-10-14 — hook はホストを聞かない
+
+**問い**
+
+- 最初の clone で、hook が Codex か Claude か Cursor かを聞いて割り当てるか。
+
+**効いた**
+
+- 聞かない。git hook は commit で走り、`hooksPath` は `pnpm install` が書く。その install は CI でも走る。Cursor の hook は、ホストが Cursor のときだけ動く。聞ける時点ではホストは決まっている。
+- 各ホストは自分の入口を読む。共有のゲートは `host-default` のまま。ホスト名を yaml に書いてモデル ID を割り当てない。
+
+**失敗 / リスク**
+
+- 入口のファイルが無いホストは、共有の `AGENTS.md` と feature-gate だけを見る。それで足りる。質問を足すと、答えられない環境が止まる。
+
+---
+
+## 2026-10-14 — Cursor、Claude Code、Codex は同じ契約を読む
+
+**問い**
+
+- Cursor だけでなく、Codex と Claude にも対応するか。
+
+**効いた**
+
+- 質問は足さない。Claude Code は `CLAUDE.md` と `.claude/settings.json`、Codex は `AGENTS.md` と `.codex/hooks.json`、Cursor は `.cursor/hooks.json` を読む。正本は `.claude/AGENTS.md`。モデル ID は指定しない。
+- Bash の秘密、照会の連鎖、commit ガードは同じスクリプトを呼ぶ。Claude と Codex の拒否は exit 2。Cursor の拒否は JSON のまま。Codex のスキルは `.agents/skills` から `.claude/skills` を見る。
+
+**失敗 / リスク**
+
+- Codex の `apply_patch` は `tool_input.command` で届く。秘密の書き込みフックは file path が無いと呼んでも素通りする。commit の git hook が実 `.env` を止める。
+
+---
+
+## 2026-10-14 — Claude の指示ファイルは AGENTS.md だけで足りる
+
+**問い**
+
+- Claude Code は `AGENTS.md` に対応している。別の `CLAUDE.md` は要るか。
+
+**効いた**
+
+- 要らない。Claude Code 2.1.277 以降の既定は、経路上に `CLAUDE.md` が無いとき `AGENTS.md` と `.claude/AGENTS.md` を読む。`CLAUDE.md` があるとそちらだけを読み、`AGENTS.md` は無視される。置いた `CLAUDE.md` は外した。
+- `.claude/settings.json` の hook は指示ファイルではない。残す。Codex の `.codex/hooks.json` と `.agents/skills` も残す。
+
+**失敗 / リスク**
+
+- 利用者が `claude-md-and-agents-md` にしていない既定では、`CLAUDE.md` を戻すと共有契約が再び隠れる。個人の `~/.claude/CLAUDE.md` はリポジトリの `AGENTS.md` を消さない。
+
+---
+
+## 2026-10-14 — clone 後にプロバイダとモデルは選ばせない
+
+**問い**
+
+- Claude、Cursor、Codex で clone したあと、hook が初期化してプロバイダとモデルを選ばせるか。
+
+**効いた**
+
+- 選ばせない。as-is にも選択画面は無い。as-is は契約が製品スラッグを名指し、動く入口は `.cursor/hooks.json` だけだった。to-be は名指しをやめ、開いているアプリの既定に任せる。`pnpm install` が書くのは git の commit hook だけである。図は `docs/architecture/host-entry-as-is-to-be.mmd`。
+
+**失敗 / リスク**
+
+- アプリ自身の設定画面がモデルを聞くことはある。このリポジトリの hook は、その答えを yaml に書かない。
+
+---
+
+## 2026-10-14 — 選択は手元の一度だけ
+
+**問い**
+
+- clone のあと、プロバイダとモデルを選べた方が開発者に分かりやすいか。
+
+**効いた**
+
+- 手元の端末で `pnpm install` したときだけ、`scripts/setup-host.mjs` が一度聞く。空欄のモデルはホストの既定。Claude は `.claude/settings.local.json`、Codex は手元の `.codex/config.toml` に書く。Cursor のモデルはアプリのモデル選択が使う。
+- CI と commit hook は質問しない。答えは共有の yaml には書かない。二度目は聞かない。
+
+**失敗 / リスク**
+
+- Codex の `.codex/config.toml` が既にあるときは上書きしない。そのファイルは gitignore なので、共有の Codex 設定を後からコミットする場所にはしない。

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** 重ならないスライスの同時実行を判定する。Task は起動しない。 */
+/** 重ならないスライスの同時実行を判定する。モデル ID は指定しない。Task は起動しない。 */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
