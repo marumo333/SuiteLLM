@@ -1,6 +1,6 @@
 # AGENTS.md — ハーネス テンプレート（モデル戦略・自己成長ループ）
 
-ハーネスは **Cursor**。使い方は `TEMPLATE.md`。人の判断は `docs/decisions/` と `docs/learnings.md`、機能の判断は `features/<slug>/design.md` に残す。
+ハーネスは Cursor、Claude Code、Codex で同じ契約を使う。使い方は `TEMPLATE.md`。人の判断は `docs/decisions/` と `docs/learnings.md`、機能の判断は `features/<slug>/design.md` に残す。モデル ID は指定しない。
 
 ## 守ること
 

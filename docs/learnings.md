@@ -732,3 +732,20 @@
 **失敗 / リスク**
 
 - 入口のファイルが無いホストは、共有の `AGENTS.md` と feature-gate だけを見る。それで足りる。質問を足すと、答えられない環境が止まる。
+
+---
+
+## 2026-10-14 — Cursor、Claude Code、Codex は同じ契約を読む
+
+**問い**
+
+- Cursor だけでなく、Codex と Claude にも対応するか。
+
+**効いた**
+
+- 質問は足さない。Claude Code は `CLAUDE.md` と `.claude/settings.json`、Codex は `AGENTS.md` と `.codex/hooks.json`、Cursor は `.cursor/hooks.json` を読む。正本は `.claude/AGENTS.md`。モデル ID は指定しない。
+- Bash の秘密、照会の連鎖、commit ガードは同じスクリプトを呼ぶ。Claude と Codex の拒否は exit 2。Cursor の拒否は JSON のまま。Codex のスキルは `.agents/skills` から `.claude/skills` を見る。
+
+**失敗 / リスク**
+
+- Codex の `apply_patch` は `tool_input.command` で届く。秘密の書き込みフックは file path が無いと呼んでも素通りする。commit の git hook が実 `.env` を止める。

@@ -50,6 +50,22 @@ test('beforeReadFile は .tools を拒否する', () => {
 	assert.match(body.agent_message, /node_modules|\.tools/);
 });
 
+test('Claude と Codex の PreToolUse は exit 2 で止め、Cursor の JSON を返さない', () => {
+	const hook = join(ROOT, '.claude/hooks/block_env_read.mjs');
+	const r = spawnSync(process.execPath, [hook], {
+		input: JSON.stringify({
+			hook_event_name: 'PreToolUse',
+			cwd: ROOT,
+			tool_name: 'Bash',
+			tool_input: { command: 'cat .env' }
+		}),
+		encoding: 'utf8'
+	});
+	assert.equal(r.status, 2);
+	assert.match(r.stderr, /規約1/);
+	assert.doesNotMatch(r.stdout, /"permission"/);
+});
+
 test('search-lines は一致行を返す', () => {
 	const r = spawnSync(process.execPath, ['scripts/search-lines.mjs', 'export const PACKET_MAX_BYTES = 32768;'], {
 		cwd: ROOT,

@@ -1,12 +1,11 @@
 # marumo-cloud
 
-Cursor ハーネスの**テンプレート**。対象は席・正本・ゲート・cycle（[ADR 0039](docs/decisions/0039-harness-template-cycle-graph.md)）。
+Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。対象は席・正本・ゲート・cycle（[ADR 0039](docs/decisions/0039-harness-template-cycle-graph.md)）。
 ライセンスは [MIT](LICENSE)（Copyright (c) 2026 marumo333）。
 
 ## 実行環境
 
-開発の正は **Cursor のクラウド**（Cloud Agent）と GitHub Actions（`ubuntu-latest`）。
-ゲート（`feature-gate` / OPA）は Linux amd64 にピン留めする。macOS / Windows / Linux arm64 では動かない。
+開発は Cursor、Claude Code、Codex。ゲート（`feature-gate` / OPA）は Linux amd64 の CI と、各ホストの commit 前 hook で通す。macOS / Windows / Linux arm64 ではゲートは動かない。
 手元の clone は閲覧と空リポへの載せに使う。commit とゲートはクラウドまたは Actions で通す。
 
 ## 何をするか
@@ -23,7 +22,7 @@ Cursor ハーネスの**テンプレート**。対象は席・正本・ゲート
 
 ## 最初にやること
 
-Cursor のクラウドでリポを開く。このリポジトリの clone 後は `pnpm install`（hooks も入る）。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
+どのホストでも clone 後は `pnpm install`（git hooks も入る）。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
 
 空リポへ載せる手順は [TEMPLATE.md](TEMPLATE.md)。
 完了はクラウドまたは Actions 上で `node scripts/feature-gate.mjs` が緑であること。ハーネスにテストがある変更は `pnpm test` が緑であること（[ADR 0016](docs/decisions/0016-definition-of-done.md)）。

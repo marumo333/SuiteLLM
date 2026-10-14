@@ -1,0 +1,37 @@
+{
+	"description": "Cursor と Claude Code と同じ commit・秘密・照会のガード。モデルは割り当てない。",
+	"hooks": {
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node .claude/hooks/block_env_read.mjs",
+						"statusMessage": "秘密と依存の読み取りを止める"
+					},
+					{
+						"type": "command",
+						"command": "node .claude/hooks/code_mode_guard.mjs",
+						"statusMessage": "照会 bash を1回にまとめる"
+					},
+					{
+						"type": "command",
+						"command": "node .claude/hooks/pre_commit_guard.mjs",
+						"statusMessage": "commit をゲートに通す"
+					}
+				]
+			},
+			{
+				"matcher": "Edit|Write",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node .claude/hooks/block_secret_write.mjs",
+						"statusMessage": "秘密の書き込みを止める"
+					}
+				]
+			}
+		]
+	}
+}

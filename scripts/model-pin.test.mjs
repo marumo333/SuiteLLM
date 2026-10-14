@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, lstatSync, readlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -84,7 +84,9 @@ test('clone と hook はホストを聞かず、モデルを割り当てない',
 		'.claude/hooks/pre_commit_guard.mjs',
 		'.claude/hooks/block_env_read.mjs',
 		'.claude/hooks/block_secret_write.mjs',
-		'.claude/hooks/post_task_reflect.mjs'
+		'.claude/hooks/post_task_reflect.mjs',
+		'.claude/hooks/code_mode_guard.mjs',
+		'.codex/hooks.json'
 	];
 	for (const rel of files) {
 		const text = read(rel);
@@ -95,6 +97,32 @@ test('clone と hook はホストを聞かず、モデルを割り当てない',
 	assert.match(pins, /hook はホストを聞かない/);
 	assert.match(pins, /各ホストは自分の入口を読む/);
 	assert.match(pins, /ホスト名を yaml に書いてモデル ID を割り当てない/);
+});
+
+test('Cursor と Claude Code と Codex は同じ契約の入口を持つ', () => {
+	const agents = read('AGENTS.md');
+	const claude = read('CLAUDE.md');
+	const canon = read('.claude/AGENTS.md');
+	for (const text of [agents, claude, canon]) {
+		assert.match(text, /Claude Code/);
+		assert.match(text, /Codex/);
+		assert.match(text, /モデル ID は指定しない/);
+	}
+	assert.match(claude, /\.claude\/AGENTS\.md/);
+	assert.doesNotMatch(agents, /このリポジトリは Cursor ハーネスのテンプレート/);
+
+	const claudeHooks = read('.claude/settings.json');
+	const codexHooks = read('.codex/hooks.json');
+	for (const text of [claudeHooks, codexHooks]) {
+		assert.match(text, /block_env_read\.mjs/);
+		assert.match(text, /pre_commit_guard\.mjs/);
+		assert.match(text, /code_mode_guard\.mjs/);
+	}
+	assert.match(read('.cursor/hooks.json'), /pre-commit\.mjs/);
+
+	const link = lstatSync(join(ROOT, '.agents/skills'));
+	assert.equal(link.isSymbolicLink(), true);
+	assert.equal(readlinkSync(join(ROOT, '.agents/skills')), '../.claude/skills');
 });
 
 test('重ならないスライスは計画確認のあとホストの既定で同時に進める', () => {

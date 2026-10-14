@@ -12,6 +12,7 @@
 				"matcher": "Bash",
 				"hooks": [
 					{ "type": "command", "command": "node .claude/hooks/block_env_read.mjs" },
+					{ "type": "command", "command": "node .claude/hooks/code_mode_guard.mjs" },
 					{ "type": "command", "command": "node .claude/hooks/pre_commit_guard.mjs" }
 				]
 			}
