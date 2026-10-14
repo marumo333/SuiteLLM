@@ -13,13 +13,12 @@ flowchart TB
 
   subgraph tobe["to-be この枝"]
     B0["clone"] --> B1["pnpm install が git hook を書く"]
-    B1 --> B2["手元の端末なら一度だけ選ぶ"]
-    B2 --> CU["Cursor"]
+    B1 --> CU["Cursor"]
     CU --> CL["Claude Code"]
     CL --> CX["Codex"]
     CX --> BM["実行モデルはホストの既定"]
     BM --> BG["commit で同じ feature-gate"]
-    BG -.-> NQ["CI と commit hook は質問しない"]
+    BG -.-> NQ["クラウドも手元も質問しない"]
     NQ -.-> NY["共有 yaml には書かない"]
     NY -.-> MD["CLAUDE.md は置かない"]
   end

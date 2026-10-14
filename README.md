@@ -28,11 +28,11 @@ Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。�
 - Claude Code は `AGENTS.md` と `.claude/AGENTS.md` と `.claude/settings.json`
 - Codex は `AGENTS.md` と `.codex/hooks.json`
 
-`CLAUDE.md` は置かない。スキルは `.claude/skills` にあり、Codex は `.agents/skills` から同じディレクトリを読む。手元の端末では `pnpm install` のあと、この3つから一度だけ選ぶ。空欄のモデルはホストの既定。CI と commit hook は質問しない。
+`CLAUDE.md` は置かない。スキルは `.claude/skills` にあり、Codex は `.agents/skills` から同じディレクトリを読む。`pnpm install` は git hooks を入れる。クラウドも手元もプロバイダとモデルは聞かない。実行はホストの既定。
 
 ## 最初にやること
 
-どのホストでも clone 後は `pnpm install`（git hooks も入る）。手元の端末なら、そのあとプロバイダとモデルを一度だけ選ぶ。CI では聞かない。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
+どのホストでも clone 後は `pnpm install`（git hooks も入る）。プロバイダとモデルは聞かない。実行はホストの既定。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
 
 空リポへ載せる手順は [TEMPLATE.md](TEMPLATE.md)。
 完了はクラウドまたは Actions 上で `node scripts/feature-gate.mjs` が緑であること。ハーネスにテストがある変更は `pnpm test` が緑であること（[ADR 0016](docs/decisions/0016-definition-of-done.md)）。
@@ -48,7 +48,7 @@ Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。�
 
 ### 入口
 
-as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は三つの入口が同じ `AGENTS.md` を読む。手元の端末なら `pnpm install` のあと一度だけプロバイダとモデルを選ぶ。空欄のモデルはホストの既定。CI と commit hook は質問しない。答えは共有の yaml には書かない。
+as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は三つの入口が同じ `AGENTS.md` を読む。`pnpm install` は git hooks を書く。クラウドも手元もプロバイダとモデルは聞かない。実行はホストの既定。答えは共有の yaml には書かない。
 
 ![入口の as-is と to-be](docs/architecture/host-entry-as-is-to-be.gif)
 
