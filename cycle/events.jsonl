@@ -223,3 +223,5 @@
 {"t":"2026-10-14T13:31:11.698Z","type":"node_state","cycle":"C-0024","node":"skill:reflect","state":"skipped"}
 {"t":"2026-10-14T13:31:11.723Z","type":"node_state","cycle":"C-0024","node":"skill:harness-grow","state":"skipped"}
 {"t":"2026-10-14T13:31:11.748Z","type":"token_ledger","cycle":"C-0024","seat":"grok","effort":"high","packet_bytes":0,"tasks":1,"zero_value_reinject":false}
+{"t":"2026-10-14T14:11:18.815Z","type":"human_approved","cycle":"C-0024","merge_sha":"a6e151b6bc30df35af786309b586ba6ecbb76d84","pr":"34"}
+{"t":"2026-10-14T14:11:18.822Z","type":"cycle_open","cycle":"C-0025","source":"after-merge","from":"C-0024"}
