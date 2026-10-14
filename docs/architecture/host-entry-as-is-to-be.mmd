@@ -1,29 +1,25 @@
-%%{init: {"flowchart": {"wrappingWidth": 420, "padding": 16}}}%%
+%%{init: {"flowchart": {"useMaxWidth": false, "htmlLabels": true, "wrappingWidth": 520, "padding": 24, "nodeSpacing": 40, "rankSpacing": 48, "diagramPadding": 24}}}%%
 flowchart TB
   subgraph asis["as-is main"]
-    direction LR
     A0["clone"] --> A1["pnpm install が git hook を書く"]
     A1 --> A2["契約文は Cursor ハーネス"]
     A2 --> A3["動く入口は .cursor/hooks.json"]
     A3 --> A4["yaml が製品スラッグを名指し"]
     A4 --> A5["実行モデルは契約が指定"]
-    A1 -.-> A6["選択画面は無い"]
+    A5 --> A6["選択画面は無い"]
   end
 
-  A5 ==>|変更| B0
+  A6 ==>|変更| B0
 
   subgraph tobe["to-be この枝"]
-    direction TB
     B0["clone"] --> B1["pnpm install が git hook を書く"]
     B1 --> B2["手元の端末なら一度だけ選ぶ"]
     B2 --> CU["Cursor"]
-    B2 --> CL["Claude Code"]
-    B2 --> CX["Codex"]
-    CU --> BM["実行モデルはホストの既定"]
-    CL --> BM
-    CX --> BM
+    CU --> CL["Claude Code"]
+    CL --> CX["Codex"]
+    CX --> BM["実行モデルはホストの既定"]
     BM --> BG["commit で同じ feature-gate"]
-    B1 -.-> NQ["CI と commit hook は質問しない"]
-    B2 -.-> NY["共有 yaml には書かない"]
-    CL -.-> MD["CLAUDE.md は置かない"]
+    BG -.-> NQ["CI と commit hook は質問しない"]
+    NQ -.-> NY["共有 yaml には書かない"]
+    NY -.-> MD["CLAUDE.md は置かない"]
   end
