@@ -749,3 +749,20 @@
 **失敗 / リスク**
 
 - Codex の `apply_patch` は `tool_input.command` で届く。秘密の書き込みフックは file path が無いと呼んでも素通りする。commit の git hook が実 `.env` を止める。
+
+---
+
+## 2026-10-14 — Claude の指示ファイルは AGENTS.md だけで足りる
+
+**問い**
+
+- Claude Code は `AGENTS.md` に対応している。別の `CLAUDE.md` は要るか。
+
+**効いた**
+
+- 要らない。Claude Code 2.1.277 以降の既定は、経路上に `CLAUDE.md` が無いとき `AGENTS.md` と `.claude/AGENTS.md` を読む。`CLAUDE.md` があるとそちらだけを読み、`AGENTS.md` は無視される。置いた `CLAUDE.md` は外した。
+- `.claude/settings.json` の hook は指示ファイルではない。残す。Codex の `.codex/hooks.json` と `.agents/skills` も残す。
+
+**失敗 / リスク**
+
+- 利用者が `claude-md-and-agents-md` にしていない既定では、`CLAUDE.md` を戻すと共有契約が再び隠れる。個人の `~/.claude/CLAUDE.md` はリポジトリの `AGENTS.md` を消さない。

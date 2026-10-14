@@ -1,6 +1,6 @@
 # AGENTS.md
 
-このリポジトリは Cursor、Claude Code、Codex で同じ契約を使うテンプレート。対象は席・正本・ゲート・cycle。手順は [`TEMPLATE.md`](TEMPLATE.md)、エージェント向けの規約は [`.claude/AGENTS.md`](.claude/AGENTS.md)。Claude Code は [`CLAUDE.md`](CLAUDE.md)、Codex は `.codex/hooks.json` も読む。人の判断は [`docs/decisions/`](docs/decisions/) と [`docs/learnings.md`](docs/learnings.md) に残す。モデル ID は指定しない。
+このリポジトリは Cursor、Claude Code、Codex で同じ契約を使うテンプレート。対象は席・正本・ゲート・cycle。手順は [`TEMPLATE.md`](TEMPLATE.md)、エージェント向けの規約は [`.claude/AGENTS.md`](.claude/AGENTS.md)。Claude Code もこの `AGENTS.md` と [`.claude/AGENTS.md`](.claude/AGENTS.md) を読む。`CLAUDE.md` は置かない。Codex は `.codex/hooks.json` も読む。人の判断は [`docs/decisions/`](docs/decisions/) と [`docs/learnings.md`](docs/learnings.md) に残す。モデル ID は指定しない。
 
 ## Cursor Cloud specific instructions
 

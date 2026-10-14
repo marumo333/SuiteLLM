@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, lstatSync, readlinkSync } from 'node:fs';
+import { readFileSync, readdirSync, lstatSync, readlinkSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -100,16 +100,21 @@ test('clone と hook はホストを聞かず、モデルを割り当てない',
 });
 
 test('Cursor と Claude Code と Codex は同じ契約の入口を持つ', () => {
+	assert.equal(existsSync(join(ROOT, 'CLAUDE.md')), false);
+	assert.equal(existsSync(join(ROOT, '.claude/CLAUDE.md')), false);
 	const agents = read('AGENTS.md');
-	const claude = read('CLAUDE.md');
 	const canon = read('.claude/AGENTS.md');
-	for (const text of [agents, claude, canon]) {
+	for (const text of [agents, canon]) {
 		assert.match(text, /Claude Code/);
 		assert.match(text, /Codex/);
 		assert.match(text, /モデル ID は指定しない/);
 	}
-	assert.match(claude, /\.claude\/AGENTS\.md/);
+	assert.match(agents, /Claude Code もこの `AGENTS.md`/);
+	assert.match(agents, /`CLAUDE.md` は置かない/);
 	assert.doesNotMatch(agents, /このリポジトリは Cursor ハーネスのテンプレート/);
+	const pins = read('docs/multi-agent-and-pins.md');
+	assert.match(pins, /Claude Code はルートの `AGENTS.md`/);
+	assert.match(pins, /`CLAUDE.md` は置かない/);
 
 	const claudeHooks = read('.claude/settings.json');
 	const codexHooks = read('.codex/hooks.json');
