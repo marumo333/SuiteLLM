@@ -130,6 +130,11 @@ test('Cursor と Claude Code と Codex は同じ契約の入口を持つ', () =>
 	assert.match(hostFig, /yaml が製品スラッグを名指し/);
 	assert.doesNotMatch(hostFig, PRODUCT_SLUG);
 	assert.match(read('README.md'), /docs\/architecture\/host-entry-as-is-to-be\.gif/);
+	const readme = read('README.md');
+	assert.match(readme, /## 3つのプロバイダ/);
+	assert.match(readme, /Cursor は `\.cursor\/hooks\.json` と `AGENTS\.md`/);
+	assert.match(readme, /Claude Code は `AGENTS\.md` と `\.claude\/AGENTS\.md` と `\.claude\/settings\.json`/);
+	assert.match(readme, /Codex は `AGENTS\.md` と `\.codex\/hooks\.json`/);
 
 	const claudeHooks = read('.claude/settings.json');
 	const codexHooks = read('.codex/hooks.json');

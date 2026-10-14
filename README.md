@@ -20,6 +20,16 @@ Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。�
 
 手順の本体は [TEMPLATE.md](TEMPLATE.md)。
 
+## 3つのプロバイダ
+
+対応するのは Cursor、Claude Code、Codex の3つ。どれで開いても同じ [`AGENTS.md`](AGENTS.md) と [`.claude/AGENTS.md`](.claude/AGENTS.md) を読む。
+
+- Cursor は `.cursor/hooks.json` と `AGENTS.md`
+- Claude Code は `AGENTS.md` と `.claude/AGENTS.md` と `.claude/settings.json`
+- Codex は `AGENTS.md` と `.codex/hooks.json`
+
+`CLAUDE.md` は置かない。スキルは `.claude/skills` にあり、Codex は `.agents/skills` から同じディレクトリを読む。手元の端末では `pnpm install` のあと、この3つから一度だけ選ぶ。空欄のモデルはホストの既定。CI と commit hook は質問しない。
+
 ## 最初にやること
 
 どのホストでも clone 後は `pnpm install`（git hooks も入る）。手元の端末なら、そのあとプロバイダとモデルを一度だけ選ぶ。CI では聞かない。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
@@ -77,8 +87,11 @@ hooks を踏むのは実装の commit。feature-gate は判定であり正本へ
 ## 構成
 
 ```
-.claude/          エージェント / skill / hook
+AGENTS.md         Cursor、Claude Code、Codex が読む契約
+.claude/          Claude Code のエージェント / skill / hook
 .cursor/          Cursor の hook
+.codex/           Codex の hook
+.agents/skills    Codex から .claude/skills を見る
 docs/decisions/   人の判断
 docs/learnings.md 実行のメモ
 cycle/            cycle の記録と席のピン
