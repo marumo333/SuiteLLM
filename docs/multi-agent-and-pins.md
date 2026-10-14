@@ -40,11 +40,11 @@ flowchart TB
 
 `dispatch_seats` の `verify: opus` や `muse` は、世代のピンではない。記録してよい席トークンが残っている、という別の問題である。yaml は実行時にパースされない。実行される写しは `scripts/lib/packet-policy.mjs` の `SEATS_BY_NODE` と `packet.rego` の `seats` と `scripts/cycle-record.mjs` の `SEATS` である。この変更では席の集合は削らない。
 
-## hook はホストを聞かない
+## 選択は手元の一度だけ
 
-clone の直後に Codex、Claude、Cursor のどれかを聞いて割り当てることはしない。git hook は commit で走り、`hooksPath` は `pnpm install` の `prepare` が書く。その install は CI でも走る。質問はそこでは答えられない。Cursor の hook は、ホストが既に Cursor のときだけ動く。Codex と Claude はそのファイルを実行しない。聞ける時点では、ホストは決まっている。
+commit hook はホストを聞かない。Cursor の hook も聞かない。git hook は commit で走り、`hooksPath` は `pnpm install` の `prepare` が書く。その install は CI でも走る。CI と commit hook は質問しない。手元の端末なら一度だけ選ぶ。`scripts/setup-host.mjs` がプロバイダとモデルを聞く。空欄のモデルはホストの既定。答えは `.harness/host-choice.json` に残り、共有の yaml には書かない。Claude のモデルは `.claude/settings.local.json`、Codex のモデルは手元の `.codex/config.toml` に書く。どちらも gitignore する。既存の Codex 設定は上書きしない。Cursor のモデルはアプリのモデル選択が使う。
 
-各ホストは自分の入口を読む。Cursor は `.cursor/hooks.json` とルートの `AGENTS.md`、Claude Code はルートの `AGENTS.md` と `.claude/AGENTS.md` と `.claude/settings.json`、Codex はルートの `AGENTS.md` と `.codex/hooks.json`。`CLAUDE.md` は置かない。置くと既定の Claude は `AGENTS.md` を読まなくなる。スキルは `.claude/skills` にあり、Codex は `.agents/skills` から同じディレクトリを読む。共有のゲートは `host-default` のままである。ホスト名を yaml に書いてモデル ID を割り当てない。clone のあとプロバイダとモデルを選ぶ段は無い。as-is も選択画面は無く、契約が製品スラッグを名指ししていた。図は [`docs/architecture/host-entry-as-is-to-be.mmd`](architecture/host-entry-as-is-to-be.mmd)。
+各ホストは自分の入口を読む。Cursor は `.cursor/hooks.json` とルートの `AGENTS.md`、Claude Code はルートの `AGENTS.md` と `.claude/AGENTS.md` と `.claude/settings.json`、Codex はルートの `AGENTS.md` と `.codex/hooks.json`。`CLAUDE.md` は置かない。置くと既定の Claude は `AGENTS.md` を読まなくなる。スキルは `.claude/skills` にあり、Codex は `.agents/skills` から同じディレクトリを読む。共有のゲートは `host-default` のままである。ホスト名を yaml に書いてモデル ID を割り当てない。図は [`docs/architecture/host-entry-as-is-to-be.mmd`](architecture/host-entry-as-is-to-be.mmd)。
 
 ## 重ならないスライスは同時に進め、重なるファイルは親が書く
 

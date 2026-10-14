@@ -11,3 +11,5 @@ cycle/packets/**
 .tools/
 .env
 .env.*
+.harness/
+.codex/config.toml

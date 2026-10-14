@@ -14,15 +14,16 @@ flowchart TB
 
   subgraph tobe["to-be この枝"]
     direction TB
-    B0["clone"] --> B1["開くアプリは人が既に決めている"]
-    B1 --> B2["pnpm install は git hook だけ。質問しない"]
-    B2 --> CU["Cursor は .cursor/hooks.json と AGENTS.md"]
-    B2 --> CL["Claude は AGENTS.md と .claude/settings.json"]
-    B2 --> CX["Codex は AGENTS.md と .codex/hooks.json"]
+    B0["clone"] --> B1["pnpm install が git hook を書く"]
+    B1 --> B2["手元の端末なら一度だけ選ぶ"]
+    B2 --> CU["Cursor"]
+    B2 --> CL["Claude Code"]
+    B2 --> CX["Codex"]
     CU --> BM["実行モデルはホストの既定"]
     CL --> BM
     CX --> BM
     BM --> BG["commit で同じ feature-gate"]
-    B2 -.-> NO["プロバイダ選択とモデル選択は置かない"]
+    B1 -.-> NQ["CI と commit hook は質問しない"]
+    B2 -.-> NY["共有 yaml には書かない"]
     CL -.-> MD["CLAUDE.md は置かない"]
   end

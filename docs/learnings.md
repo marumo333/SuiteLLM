@@ -782,3 +782,20 @@
 **失敗 / リスク**
 
 - アプリ自身の設定画面がモデルを聞くことはある。このリポジトリの hook は、その答えを yaml に書かない。
+
+---
+
+## 2026-10-14 — 選択は手元の一度だけ
+
+**問い**
+
+- clone のあと、プロバイダとモデルを選べた方が開発者に分かりやすいか。
+
+**効いた**
+
+- 手元の端末で `pnpm install` したときだけ、`scripts/setup-host.mjs` が一度聞く。空欄のモデルはホストの既定。Claude は `.claude/settings.local.json`、Codex は手元の `.codex/config.toml` に書く。Cursor のモデルはアプリのモデル選択が使う。
+- CI と commit hook は質問しない。答えは共有の yaml には書かない。二度目は聞かない。
+
+**失敗 / リスク**
+
+- Codex の `.codex/config.toml` が既にあるときは上書きしない。そのファイルは gitignore なので、共有の Codex 設定を後からコミットする場所にはしない。

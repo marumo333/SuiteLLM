@@ -22,7 +22,7 @@ Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。�
 
 ## 最初にやること
 
-どのホストでも clone 後は `pnpm install`（git hooks も入る）。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
+どのホストでも clone 後は `pnpm install`（git hooks も入る）。手元の端末なら、そのあとプロバイダとモデルを一度だけ選ぶ。CI では聞かない。プロダクトの始め方は [TEMPLATE.md](TEMPLATE.md) の「プロダクトを始める」。機能ごとに ADR は起票しない。
 
 空リポへ載せる手順は [TEMPLATE.md](TEMPLATE.md)。
 完了はクラウドまたは Actions 上で `node scripts/feature-gate.mjs` が緑であること。ハーネスにテストがある変更は `pnpm test` が緑であること（[ADR 0016](docs/decisions/0016-definition-of-done.md)）。
@@ -38,7 +38,7 @@ Cursor、Claude Code、Codex で同じ契約を使う**テンプレート**。�
 
 ### 入口
 
-clone のあと、プロバイダとモデルを選ぶ段は無い。開くアプリは人が既に決めている。`pnpm install` は git hook を書くだけで、ホスト名もモデル ID も聞かない。as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は三つの入口が同じ `AGENTS.md` を読み、実行モデルはホストの既定である。
+as-is は契約が製品スラッグを名指し、動く入口は Cursor だけだった。to-be は三つの入口が同じ `AGENTS.md` を読む。手元の端末なら `pnpm install` のあと一度だけプロバイダとモデルを選ぶ。空欄のモデルはホストの既定。CI と commit hook は質問しない。答えは共有の yaml には書かない。
 
 ![入口の as-is と to-be](docs/architecture/host-entry-as-is-to-be.gif)
 

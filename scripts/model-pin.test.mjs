@@ -70,7 +70,7 @@ test('生きた契約に製品スラッグを書かず、席トークンは残�
 	assert.match(read('README.md'), /docs\/multi-agent-and-pins\.md/);
 });
 
-test('clone と hook はホストを聞かず、モデルを割り当てない', () => {
+test('commit hook はホストを聞かず、手元の端末だけが一度選ぶ', () => {
 	const files = [
 		'scripts/init.mjs',
 		'scripts/install-git-hooks.mjs',
@@ -94,8 +94,12 @@ test('clone と hook はホストを聞かず、モデルを割り当てない',
 		assert.doesNotMatch(text, /readline|createInterface|isTTY|process\.stdin/, rel);
 		assert.doesNotMatch(text, /codex か|Claude か|Cursor か/, rel);
 	}
+	assert.match(read('scripts/install-git-hooks.mjs'), /setup-host\.mjs/);
+	assert.match(read('scripts/setup-host.mjs'), /createInterface/);
 	const pins = read('docs/multi-agent-and-pins.md');
-	assert.match(pins, /hook はホストを聞かない/);
+	assert.match(pins, /commit hook はホストを聞かない/);
+	assert.match(pins, /手元の端末なら一度だけ選ぶ/);
+	assert.match(pins, /共有の yaml には書かない/);
 	assert.match(pins, /各ホストは自分の入口を読む/);
 	assert.match(pins, /ホスト名を yaml に書いてモデル ID を割り当てない/);
 });
@@ -117,8 +121,10 @@ test('Cursor と Claude Code と Codex は同じ契約の入口を持つ', () =>
 	assert.match(pins, /Claude Code はルートの `AGENTS.md`/);
 	assert.match(pins, /`CLAUDE.md` は置かない/);
 	const hostFig = read('docs/architecture/host-entry-as-is-to-be.mmd');
-	assert.match(hostFig, /プロバイダ選択とモデル選択は置かない/);
-	assert.match(hostFig, /質問しない/);
+	assert.match(hostFig, /手元の端末なら一度だけ選ぶ/);
+	assert.match(hostFig, /CI と commit hook は質問しない/);
+	assert.match(hostFig, /共有 yaml には書かない/);
+	assert.doesNotMatch(hostFig, /プロバイダ選択とモデル選択は置かない/);
 	assert.match(hostFig, /CLAUDE.md は置かない/);
 	assert.match(hostFig, /実行モデルはホストの既定/);
 	assert.match(hostFig, /yaml が製品スラッグを名指し/);

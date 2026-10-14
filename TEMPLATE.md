@@ -18,7 +18,7 @@ git push -u origin main
 
 ## このリポジトリを始める（clone のあと）
 
-`pnpm install` を叩く。`prepare` が git hooks を入れる。commit 主語は `feat:` / `docs:` 等 + 日本語。`--no-verify` は拒否される（[[0042]]）。
+`pnpm install` を叩く。`prepare` が git hooks を入れる。手元の端末なら、プロバイダとモデルを一度だけ聞く。空欄のモデルはホストの既定。CI では聞かない。commit 主語は `feat:` / `docs:` 等 + 日本語。`--no-verify` は拒否される（[[0042]]）。
 
 機能ごとに ADR、レビュー、proposed、admitted は作らない。
 
