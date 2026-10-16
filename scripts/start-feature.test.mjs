@@ -17,7 +17,7 @@ function put(dir, rel, body = '') {
 
 function ready(dir) {
 	put(dir, 'AGENTS.md', '# 作業合意\n');
-	put(dir, 'GLOSSARY.md', '# 名詞\n');
+	put(dir, 'docs/GLOSSARY.md', '# 名詞\n');
 	put(dir, 'ACTIONS.md', '# 動詞\n');
 }
 

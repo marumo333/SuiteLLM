@@ -93,6 +93,7 @@ AGENTS.md         Cursor、Claude Code、Codex が読む契約
 .codex/           Codex の hook
 .agents/skills    Codex から .claude/skills を見る
 docs/decisions/   人の判断
+docs/GLOSSARY.md  用語。ここに無い名前は作らない
 docs/learnings.md 実行のメモ
 cycle/            cycle の記録と席のピン
 policy/           OPA（ゲートと cycle）
