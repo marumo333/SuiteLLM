@@ -33,7 +33,7 @@ const ACTIONS = `# 動詞
 
 function ready(dir) {
 	put(dir, 'AGENTS.md', '# 作業合意\n');
-	put(dir, 'GLOSSARY.md', '# 名詞\n\n## Object type\n');
+	put(dir, 'docs/GLOSSARY.md', '# 名詞\n\n## Object type\n');
 	put(dir, 'ACTIONS.md', ACTIONS);
 }
 

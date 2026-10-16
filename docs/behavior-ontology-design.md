@@ -17,7 +17,7 @@
 | `requirements.md` | `WHEN` 条件 `THE SYSTEM SHALL` 振る舞い。または Given / When / Then | Kiro の EARS。Spec Kit と OpenSpec のシナリオ |
 | `design.md` | 構成、データの流れ、失敗時に何が残るか | Kiro の `design.md`。自明なら省略（OpenSpec は条件付き） |
 | `tasks.md` | その機能の作業だけ | Kiro / Spec Kit |
-| `GLOSSARY.md` | Object type、Property、Link type | Foundry の名詞（objects, properties, links） |
+| `docs/GLOSSARY.md` | 用語、Object type、Property、Link type | ユビキタス言語。ここに無い名前は作らない |
 | `ACTIONS.md` | Parameters、Submission criteria、Ontology edits、Side effects | Foundry の動詞（actions）。Logic の Function は動詞に混ぜない |
 
 ## clone の直後
@@ -31,7 +31,7 @@ git は clone のときにリポジトリ内のスクリプトを実行しない
 3. `prisma/schema.prisma` があるときだけ `prisma generate`。
 4. 次が無いときだけ、空の見出しを作る。あるファイルは開いて終わらせる。
    - `AGENTS.md` は短い作業合意だけ。
-   - `GLOSSARY.md` は Object type、Property、Link type。
+   - `docs/GLOSSARY.md` は用語と、Object type、Property、Link type。ここに無い名前は作らない。
    - `ACTIONS.md` は Parameters、Submission criteria、Ontology edits、Side effects。Function は動詞に混ぜない。
 5. `design.md`、`requirements.md`、`tasks.md` は、機能の作業が始まるまで作らない。機能を始めるコマンドは `node scripts/start-feature.mjs <slug>` で、`features/<slug>/requirements.md` と `tasks.md` と、失敗する `features/<slug>/<slug>.test.mjs` を作る。`design.md` は `--design` のときだけ作る。二度目は上書きしない。見出しが無いときはこのコマンドを拒否し、先に `node scripts/init.mjs` を求める。このハーネスでは機能ファイルを作らない。確認は `node scripts/check-behavior.mjs` で、振る舞いが空のときと、テストが置き換え前のままのときは失敗する。
 6. 入れた依存、作ったファイル名、次に叩くコマンド（`npm run dev` か、既にある test）を1画面で出す。

@@ -1,6 +1,6 @@
 # AGENTS.md — ハーネス テンプレート（モデル戦略・自己成長ループ）
 
-ハーネスは Cursor、Claude Code、Codex で同じ契約を使う。使い方は `TEMPLATE.md`。人の判断は `docs/decisions/` と `docs/learnings.md`、機能の判断は `features/<slug>/design.md` に残す。モデル ID は指定しない。
+ハーネスは Cursor、Claude Code、Codex で同じ契約を使う。使い方は `TEMPLATE.md`。人の判断は `docs/decisions/` と `docs/learnings.md`、機能の判断は `features/<slug>/design.md` に残す。用語は `docs/GLOSSARY.md`。ここに無い名前は作らない。モデル ID は指定しない。
 
 ## 守ること
 
@@ -25,7 +25,7 @@ commit は hook 必須。主語は `feat:` / `fix:` / `docs:` 等 + 日本語（
 
 ## 自己成長ループ（1周）
 
-1. 自走（親）: 着手時は `docs/decisions/` と `cycle/model-routing.yaml` と `TEMPLATE.md`。
+1. 自走（親）: 着手時は `docs/decisions/` と `docs/GLOSSARY.md` と `cycle/model-routing.yaml` と `TEMPLATE.md`。
    機能の作業は `features/<slug>/` を読む。新しい ADR と新しい票は作らない。
    learnings 全文と decisions 全件を1周で再読しない。
    brainstorming / writing-plans。重ならないスライスの前は plan-confirm。
