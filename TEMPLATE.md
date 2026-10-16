@@ -34,7 +34,7 @@ node scripts/start-feature.mjs <slug>
 node scripts/check-behavior.mjs
 ```
 
-`init` は依存と、無いときだけの `AGENTS.md`、`GLOSSARY.md`、`ACTIONS.md` を置く。`start-feature` は `features/<slug>/` に振る舞いと作業と、失敗するテストだけを置く。`design.md` は `--design` のときだけ。`check-behavior` は、振る舞いが空でなく、テストが置き換えられているときだけ成功する。二度目は既存ファイルを上書きしない。
+`init` は依存と、無いときだけの `AGENTS.md`、`docs/GLOSSARY.md`、`ACTIONS.md` を置く。用語は `docs/GLOSSARY.md` だけに書く。ここに無い名前は作らない。プロダクトの remote では `--product` がこのファイルを、無いときだけ作り、あるときは残す。`start-feature` は `features/<slug>/` に振る舞いと作業と、失敗するテストだけを置く。`design.md` は `--design` のときだけ。`check-behavior` は、振る舞いが空でなく、テストが置き換えられているときだけ成功する。二度目は既存ファイルを上書きしない。
 
 ## 1周
 

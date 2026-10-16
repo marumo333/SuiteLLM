@@ -1,13 +1,27 @@
 #!/usr/bin/env node
 /** clone の次に一度叩く。既存ファイルは上書きしない。 */
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, lstatSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const SCAFFOLD = {
 	'AGENTS.md': '# 作業合意\n\n短い合意だけを書く。\n',
-	'GLOSSARY.md': '# 名詞\n\n## Object type\n\n## Property\n\n## Link type\n',
+	'docs/GLOSSARY.md': `# 名詞
+
+用語はここだけに書く。ここに無い名前を、コードと文書で新しく作らない。
+
+## 用語
+
+| 用語 | 意味 |
+| --- | --- |
+
+## Object type
+
+## Property
+
+## Link type
+`,
 	'ACTIONS.md': `# 動詞
 
 ## Action type
@@ -30,7 +44,7 @@ const SCAFFOLD = {
 `
 };
 
-const HEADINGS = ['AGENTS.md', 'GLOSSARY.md', 'ACTIONS.md'];
+const HEADINGS = ['AGENTS.md', 'docs/GLOSSARY.md', 'ACTIONS.md'];
 
 export const FRESH_EVENTS =
 	'{"t":"2026-08-14T00:00:00Z","type":"cycle_open","cycle":"C-0001","source":"template"}\n';
@@ -123,7 +137,7 @@ export function planInit(root) {
 }
 
 const CYCLE_KEEP = new Set(['required-cycle.json', 'model-routing.yaml', 'code-quality.yaml', 'events.jsonl']);
-const DOCS_KEEP = new Set(['learnings.md', 'multi-agent-and-pins.md']);
+const DOCS_KEEP = new Set(['learnings.md', 'multi-agent-and-pins.md', 'GLOSSARY.md']);
 
 function relPath(root, abs) {
 	return relative(root, abs).split('\\').join('/');
@@ -210,6 +224,12 @@ function resetAccumulation(root) {
 			}
 		}
 	}
+	const glossary = join(root, 'docs/GLOSSARY.md');
+	if (!existsSync(glossary)) {
+		mkdirSync(dirname(glossary), { recursive: true });
+		writeFileSync(glossary, SCAFFOLD['docs/GLOSSARY.md']);
+		touched.push('docs/GLOSSARY.md');
+	}
 	return touched;
 }
 
@@ -280,6 +300,7 @@ export function runInit(root, opts = {}) {
 	for (const name of plan.create) {
 		const path = join(root, name);
 		if (existsSync(path)) continue;
+		mkdirSync(dirname(path), { recursive: true });
 		writeFileSync(path, SCAFFOLD[name]);
 		created.push(name);
 	}

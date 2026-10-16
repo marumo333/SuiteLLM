@@ -9,7 +9,7 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const BEHAVIOR_TEST_MARKER =
 	"assert.fail('WHEN / THE SYSTEM SHALL を実装するテストに置き換える')";
-const READY = ['AGENTS.md', 'GLOSSARY.md', 'ACTIONS.md'];
+const READY = ['AGENTS.md', 'docs/GLOSSARY.md', 'ACTIONS.md'];
 
 function requirements(slug) {
 	return `# ${slug}\n\nWHEN \nTHE SYSTEM SHALL \n`;
