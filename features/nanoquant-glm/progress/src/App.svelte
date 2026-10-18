@@ -77,7 +77,7 @@
 <main>
   <header>
     <div>
-      <p class="kicker">GLM-5.3-Flash · NanoQuant</p>
+      <p class="kicker">ガードレールを外した GLM-5.3-Flash · NanoQuant</p>
       <h1>nanoquant-glm の進捗</h1>
       <p class="source">正本は <code>features/nanoquant-glm/tasks.md</code>。画面用の別リストは持たない。</p>
     </div>

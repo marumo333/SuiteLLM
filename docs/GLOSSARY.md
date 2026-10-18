@@ -17,8 +17,8 @@
 | 初期化 | `node scripts/init.mjs`。プロダクトの remote では `--product` が `cycle/` と `docs/` を空の周に戻す。このファイルは無いときだけ作り、あるときは残す。 |
 | GLM-5.3-Flash | 321,323,031,390 パラメータ、アクティブ 18B、45 層、ルーティングされるエキスパート 288。 |
 | NanoQuant | 線形層を低ランクの ±1 行列と全精度スケールに分解する学習後量子化。 |
-| 親チェックポイント | `dealignai/GLM-5.3-Flash-UNCENSORED-FP8`。ブロック FP8。分解の入力。元の `zai-org/GLM-5.3-Flash` は使わない。 |
-| パックしたチェックポイント | ±1 をビットに詰めた出力。 |
+| 親チェックポイント | `dealignai/GLM-5.3-Flash-UNCENSORED-FP8`。ガードレールを外したブロック FP8。分解の入力。アーキテクチャは GLM-5.3-Flash。元の `zai-org/GLM-5.3-Flash` は使わない。 |
+| パックしたチェックポイント | ±1 をビットに詰めた出力。公開先は `marumo333/GLM-5.3-Flash-UNCENSORED-NanoQuant`。 |
 | bitsPerWeightMilli | 1000 が 1 bit。分解する重みのうち `.mlp.experts.` は 550、それ以外は 800。 |
 | ramReserveBytes | この機械では 4GiB。KV は含まない。 |
 | ランク | 二値因子の列数。ビット予算からスケール分の 16 を引き、32 の倍数へ切り下げる。最小は 32。行数と列数の小さい方を超えるときはそこへ切る。 |
@@ -30,8 +30,8 @@
 
 - GLM-5.3-Flash。321,323,031,390 パラメータ、アクティブ 18B、45 層、ルーティングされるエキスパート 288。
 - NanoQuant。線形層を低ランクの ±1 行列と全精度スケールに分解する学習後量子化。
-- 親チェックポイント。`dealignai/GLM-5.3-Flash-UNCENSORED-FP8`。ブロック FP8。分解の入力。元の `zai-org/GLM-5.3-Flash` は使わない。
-- パックしたチェックポイント。±1 をビットに詰めた出力。
+- 親チェックポイント。`dealignai/GLM-5.3-Flash-UNCENSORED-FP8`。ガードレールを外したブロック FP8。分解の入力。アーキテクチャは GLM-5.3-Flash。元の `zai-org/GLM-5.3-Flash` は使わない。
+- パックしたチェックポイント。±1 をビットに詰めた出力。公開先は `marumo333/GLM-5.3-Flash-UNCENSORED-NanoQuant`。
 - 分解する重み。親チェックポイントのうち、キーが `.weight` で終わる 2 次元で、両辺が 32 以上、かつ `lm_head.weight` か `model.language_model.embed_tokens.weight` か層 0–44 のもの。各行列は自分の重みだけを分解する。
 
 ## Property

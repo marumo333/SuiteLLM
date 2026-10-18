@@ -16,7 +16,8 @@
 
 ## 設計
 
-- [x] 親チェックポイントを `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` に決める。元の `zai-org/GLM-5.3-Flash` は使わない
+- [x] 親チェックポイントを、ガードレールを外した `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` に決める。元の `zai-org/GLM-5.3-Flash` は使わない
+- [x] パックの公開先は `marumo333/GLM-5.3-Flash-UNCENSORED-NanoQuant`。アカウントが無いときは上げる前に作る
 - [x] 分解する重みを、層 0–44 と埋め込みと lm_head の、両辺 32 以上の 2 次元に固定する。各行列は自分の重みだけを分解する
 - [x] 分解する重みの bitsPerWeightMilli を、`.mlp.experts.` は 550、それ以外は 800 に決める
 - [x] 索引から、分解する重みの格納バイトと残すテンソルのバイトを足し、予約 4GiB 込みで 32GiB を超えるときはパックを作らない

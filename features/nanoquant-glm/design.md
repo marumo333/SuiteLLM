@@ -1,6 +1,6 @@
 # nanoquant-glm
 
-対象は GLM-5.3-Flash（321,323,031,390 パラメータ、アクティブ 18B、45 層、ルーティングされるエキスパート 288、top-8）を、このデスクトップで推論できる格納形式にすること。手法は Samsung Research の NanoQuant（arXiv:2602.06694、2026-02）である。低ランクの二値分解で、各線形層を次の形にする。
+対象は、ガードレールを外した親チェックポイント `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` を、このデスクトップで推論できる格納形式にすること。アーキテクチャは GLM-5.3-Flash（321,323,031,390 パラメータ、アクティブ 18B、45 層、ルーティングされるエキスパート 288、top-8）である。元の `zai-org/GLM-5.3-Flash` は分解の入力にしない。手法は Samsung Research の NanoQuant（arXiv:2602.06694、2026-02）である。低ランクの二値分解で、各線形層を次の形にする。
 
 `W ≈ s1 ⊙ (U±1 V±1^T) ⊙ s2^T`
 
@@ -16,7 +16,7 @@ U と V は ±1 の行列、s1 と s2 は全精度のスケールである。独
 
 WikiText-2 perplexity は Llama-2-70B の FP16 が 3.32、NanoQuant 0.80 bit が 7.61、0.55 bit が 9.82 である。この 3 つは GLM の合格値にしない。
 
-親の重みは `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` を層ごとに読む。元の `zai-org/GLM-5.3-Flash` は使わない。索引の `total_size` は 328,326,771,576 バイト、シャードは 62、テンソルは 76,108 で、ブロック FP8（128×128、`weight_scale_inv`）である。同じファイルに BF16 のテンソルがあるときは、その値を重みとして読む。BF16 の全量チェックポイント（約 642GB）は作業用に持たない。
+親の重みは `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` を層ごとに読む。このリポジトリのカードは `abliterated` を付け、重みの段階でガードレールを外し、追加の微調整、SFT、DPO、LoRA はしないと書いている。同じリリースの別名 `dealignai/GLM-5.3-Flash-ABLITERATED-FP8` は読まない。元の `zai-org/GLM-5.3-Flash` は使わない。索引の `total_size` は 328,326,771,576 バイト、シャードは 62、テンソルは 76,108 で、ブロック FP8（128×128、`weight_scale_inv`）である。同じファイルに BF16 のテンソルがあるときは、その値を重みとして読む。BF16 の全量チェックポイント（約 642GB）は作業用に持たない。
 
 この機械では親のまま推論しない。62 シャードのヘッダを足すと、ルーティングされるエキスパートの重みは 311,653,564,416 バイトである。言語モデルの常駐分（埋め込み、attention、dense 3 層、共有エキスパート、それ以外の非エキスパート）は 15,226,024,184 バイトで、8GiB の VRAM より大きい。1 トークンが触る言語層のエキスパートは 8,455,716,864 バイトで、エキスパート全体は 32GiB に入らない。公開されている起動は複数枚の H200 上の native FP8 である。量子化は、パックした重みをこの機械の RAM に置いて推論するための段である。
 
@@ -210,6 +210,12 @@ README の分け方に合わせ、prefill の `kernel_type` は `gemm`、decode 
 GPU の出力をデスクトップの推論に使ってよいかは、パックのあと 1 文書で決める。文書は `wikitext` の test で、隠れ状態 2 本が 4GiB を超えない先頭の 1 文書である。CPU は公式の比較と同じ fp32 の因子積、GPU は上のカーネルである。prefill は `gemm` でその文書のトークンごとの対数尤度を出す。decode は `gemv` で、同じトークンを 1 つずつ進めた対数尤度を出す。それぞれの絶対差の最大が 0.01 以下のとき、デスクトップの推論はそのカーネルの出力を使う。どちらかが 0.01 を超えるとき、または記録が無いときは、デスクトップの推論も CPU の因子積を使う。公式の記録のデバイスは変えない。
 
 記録は `features/nanoquant-glm/kernel-check.json` に書き、手元の測定のあとコミットする。中身は `kernelCommit`、`arch` が `sm_89`、`dtype` が `float16`、`tolerance` が 0.01、`documentIndex`、`prefillKernel` が `marlin_nanoquant_forward`、`decodeKernel` が `nanoquant_dyn_forward`、`prefillMaxAbsLogprobDelta`、`decodeMaxAbsLogprobDelta` である。差が有限でないとき、`arch` が `sm_89` でないとき、`tolerance` が 0.01 でないときは、記録を残さない。差が 0.01 を超えることは、記録を捨てる理由にしない。ファイルが無い間はゲートはこの項を見ない。クラウドはこの JSON を再計算しない。
+
+## 公開
+
+パックしたチェックポイントの公開先は `marumo333/GLM-5.3-Flash-UNCENSORED-NanoQuant` である。`marumo333` はアカウント名で、このリポジトリの GitHub 所有者と同じである。モデル名は、ガードレールを外した GLM-5.3-Flash を NanoQuant でパックしたことを示す。アカウントが無いときは、上げる前に `marumo333` を作る。
+
+上げるのは、パックが完成したあとのパックしたチェックポイントと、親のリポジトリ名、手法、ライセンスを書いたモデルカードである。親の FP8 シャードと `calib/` は上げない。`harness.json` があるときは、その `word_perplexity` の比と正答率をモデルカードに写す。ライセンスは親の MIT とする。クラウドからは上げない。
 
 ## ゲート
 
