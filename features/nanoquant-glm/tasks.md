@@ -7,18 +7,20 @@
 - [x] テストが通るまで見積もりを実装する
 - [ ] 4096×2048 を bitsPerWeightMilli 550 で見るとランク 704、格納ビット 4423680 になることをテストする
 - [ ] 復元が非有限、またはノルムが 0 のときは再構成誤差を記録しないことをテストする
-- [ ] 層 3 エキスパート 0 の down_proj を FP8 から復元し、校正なしの ADMM で `features/nanoquant-glm/one-matrix.json` を書く。親とゲートはランク、格納ビット、有限性、solverCommit、seed、device を見る。誤差の大小は合否にしない
-- [ ] 分解する重みを行列ごとにパックしたチェックポイントへ書く。層をまたいで因子を共有しない
-- [ ] パックした重みで perplexity を測る。測り方と合格値はまだ決めていない。Llama-2-70B の 3.32、7.61、9.82 は GLM の合格値にしない
+- [ ] 層 3 エキスパート 0 の down_proj を `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` から復元し、校正なしの ADMM で `features/nanoquant-glm/one-matrix.json` を書く。親とゲートはランク、格納ビット、有限性、solverCommit、seed、device を見る。誤差の大小は合否にしない
+- [ ] 分解する重みを行列ごとにパックしたチェックポイントへ書く。層をまたいで因子を共有しない。パックの中身と再開の単位が決まるまで始めない
+- [ ] パックした重みで WikiText-2 raw test の先頭 256 トークンの perplexity を CPU で測り、`features/nanoquant-glm/perplexity.json` を書く。有限であることだけを見る。Llama-2-70B の 3.32、7.61、9.82 は合格値にしない
+- [ ] パックした重みで温度 0、最大 32 トークンの短い生成 3 件を CPU で測り、`features/nanoquant-glm/generation.json` を書く。空でないことだけを見る。文面の正しさは合否にしない
 
 ## 設計
 
+- [x] 親チェックポイントを `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` に決める。元の `zai-org/GLM-5.3-Flash` は使わない
 - [x] 分解する重みを、層 0–44 と埋め込みと lm_head の、両辺 32 以上の 2 次元に固定する。各行列は自分の重みだけを分解する
 - [x] 分解する重みの bitsPerWeightMilli を、`.mlp.experts.` は 550、それ以外は 800 に決める
 - [x] 索引から、分解する重みの格納バイトと残すテンソルのバイトを足し、予約 4GiB 込みで 32GiB を超えるときはパックを作らない
 - [ ] パックの中身と、途中から再開する単位を決める
 - [ ] 校正を 32GiB で流す手順を決める
 - [ ] 前のブロックの誤差を次のブロックの重みで吸収する手順を決める
-- [ ] perplexity の測り方と合格値を決める
+- [x] 量子化後の perplexity と短い生成の記録形式を決める。数値と文面の上限は置かない。MMLU、GSM8K、HarmBench はこの機械では測らない
 - [ ] 8GiB の VRAM に載せる因子を決める
 - [ ] 品質が悪いとき親が変えてよいものを決める
