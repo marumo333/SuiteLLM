@@ -10,6 +10,8 @@ node_modules/
 cycle/packets/**
 !cycle/packets/.gitkeep
 .tools/
+features/nanoquant-glm/pack/
+features/nanoquant-glm/calib/
 .env
 .env.*
 .harness/
