@@ -26,7 +26,7 @@ WikiText-2 perplexity は Llama-2-70B の FP16 が 3.32、NanoQuant 0.80 bit が
 
 1. `features/nanoquant-glm/estimate.mjs` が、ビット幅と論文の圧縮率からバイト数を出し、32GiB の RAM（予約 4GiB）と 8GiB の VRAM に収まるかを返す。この段は実装済み。
 2. FP8 から 1 行列だけを読み、ADMM で初期化し、再構成誤差を記録する。校正も、前の層の順伝播も、全層も、この段では走らせない。
-3. 埋め込み、層 0 から 44、`lm_head` の順にパックする。校正、誤差の吸収、パックの中身、再開の単位、VRAM に載せる因子は、データの流れの節で固定した。パックの前後で、量子化後の測定が親とパックを同じ入力で比べる。推論カーネルは論文の CUDA GEMV を 4060 へ移す前に、5700X の CPU で因子の行列ベクトル積を計算する。
+3. 埋め込み、層 0 から 44、`lm_head` の順にパックする。校正、誤差の吸収、パックの中身、再開の単位、VRAM に載せる因子は、データの流れの節で固定した。パックの前後で、量子化後の測定が親とパックを同じ入力で比べる。公式の比較は 5700X の CPU で因子の行列ベクトル積を計算する。デスクトップの推論は、実行環境の節とデスクトップの推論の節で固定した。
 
 ### 分解する重み
 
@@ -68,7 +68,7 @@ WikiText-2 perplexity は Llama-2-70B の FP16 が 3.32、NanoQuant 0.80 bit が
 
 ゲートが判定するのは、この形と 550 に対するランク 704 と、格納ビット 4,423,680 と、記録が次の形を満たすことである。親チェックポイントとパックした重みはゲートの入力にしない。再構成誤差の大小も合否にしない。記録があるとき、クラウドの親とゲートは同じ項目を読む。
 
-ADMM の数値は同じコミットの既定に固定する。外側 400、内側 5（SVID のべき乗法）、`reg` は 0.03、ペナルティは線形でステップ `t / 400`（`t` は 0 から 399）、乱数種は 0。入力側と出力側のプレコンディショナは長さ `cols` と `rows` の 1 である。論文の Hessian 対角は校正の活性化から作る。親は約 328GB で 32GiB に載らず、1 枚の誤差を見る前に前段を走らせるとこの段の範囲を外す。校正はパックしたチェックポイントを作る段まで持たない。
+ADMM の数値は同じコミットの既定に固定する。外側 400、内側 5（SVID のべき乗法）、`reg` は 0.03、ペナルティは線形でステップ `t / 400`（`t` は 0 から 399）、乱数種は 0。関数引数の既定値は `cubic` である。このペナルティに合わせ、呼び出しは `rho_scheduler='linear'` を渡す。`linear` は `t / 400` を返す。`torch.randn` の前に `torch.manual_seed(0)` を置き、行列が GPU にあるときは `torch.cuda.manual_seed_all(0)` も置く。入力側と出力側のプレコンディショナは長さ `cols` と `rows` の 1 である。論文の Hessian 対角は校正の活性化から作る。親は約 328GB で 32GiB に載らず、1 枚の誤差を見る前に前段を走らせるとこの段の範囲を外す。校正はパックしたチェックポイントを作る段まで持たない。
 
 ソルバ本体はこのリポジトリへコピーしない。デスクトップの測定は、固定したコミットの `factorize_admm_nanoquant` を、復元したこの 1 枚に対して呼ぶ。
 
@@ -97,7 +97,7 @@ ADMM の数値は同じコミットの既定に固定する。外側 400、内�
 論文の 3.2 節の順に、各ブロックで次を行う。ブロックは埋め込み、層 0 から 44 の各層、`lm_head` である。ソルバと均衡化はこのリポジトリへコピーせず、コミット `a9e0a430881ff80d83b622c3129e330dc33c04f5` を呼ぶ。
 
 1. 誤差の吸収。現在のブロックのうち、まだ分解していない重みだけを更新し、前のブロックの量子化誤差と、同じブロックで既に分解した層の誤差を、校正で保存したそのブロックの全精度出力との差で減らす。学習率は 1e-4、バッチは 4、エポックは 8、スケジュールは cosine である。埋め込みの前にはブロックが無いので、埋め込みではこの段を飛ばす。同時に FP32 で持つルーティングされるエキスパートは 32 体までとし、組のあいだで残差を次の組のまだ分解していない重みへ渡す。attention と共有エキスパートはその層のあいだ持ち続ける。
-2. 低ランクの初期化。対角があるときはそれをプレコンディショナにする。1 行列の段だけは、これまでどおり長さ `cols` と `rows` の 1 である。ADMM は外側 400、内側 5、`reg` 0.03、線形ペナルティ、乱数種 0 のままである。1 行列の段は GPU で行う。全層で、その行列の重みと U と V を FP32 にした合計が 8GiB を超えるときは、その行列だけ CPU で行う。
+2. 低ランクの初期化。対角があるときはそれをプレコンディショナにする。1 行列の段だけは、これまでどおり長さ `cols` と `rows` の 1 である。ADMM は外側 400、内側 5、`reg` 0.03、`rho_scheduler='linear'`、乱数種 0 のままである。1 行列の段は GPU で行う。全層で、その行列の重みと U と V を FP32 にした合計が 8GiB を超えるときは、その行列だけ CPU で行う。
 3. 因子の洗練。連続因子とスケールを、そのブロックの全精度出力に合わせる。学習率は 1e-5、バッチは 1、エポックは 8、スケジュールは cosine である。
 
 全ブロックのあと、±1 を固定したままスケールだけを調整する。学習率は 1e-6、バッチは 1、エポックは 8、スケジュールは cosine である。論文が 70B を 1 GPU に載せられたのは、この固定があるためである。
@@ -147,7 +147,9 @@ z.ai の GLM-5.3-Flash-Base は、自社の評価で MMLU 88.1、BBH 86.6、Hell
 
 few-shot の分割は、`hellaswag` も train である。`mmlu` はタスク定義の dev で、先頭から取る。
 
-`wikitext` の件数は切らない。複数選択の件数 `limit` は、親で `mmlu` の先頭 1 問を測った秒数 `secondsPerExample` から決める。科目 57 と他の 4 タスクを足した 61 で割り、壁時計 172800 秒（48 時間）に収まる最大の整数にする。各タスクの全件を超えた分は切る。1 未満にはしない。パックは、親の記録に書いた `limit` と同じ問題だけを測る。やり直しで `limit` は変えない。
+`wikitext` の件数は切らない。複数選択の `limit` は 4 である。`mmlu` ではこの 4 を科目ごとに掛ける。科目は 57 なので、集約した `n` は 228 である。`hellaswag`、`arc_challenge`、`winogrande`、`truthfulqa_mc2` の `n` はそれぞれ 4 である。この 4 タスクの `n` は 30 未満なので記録し、やり直しの条件には入れない。やり直しの条件に入る複数選択は `mmlu` である。親の値を 0.88 と置くと、品質の節の式の右辺は約 0.043 である。式の形は変えない。
+
+この 4 は、1 問が読むバイトとディスクの床から決めた。1 問が読むのは、言語層のルーティングされるエキスパート 304,405,807,104 バイトと、言語モデルの常駐分 15,226,024,184 バイトで、合計 319,631,831,288 バイトである。層 45 と画像用の塔は読まない。床は毎秒 500,000,000 バイト（十進の 500 MB/s）である。表記 932GB のディスクがこれより速くても `limit` は上げない。1 問は 639.263662576 秒である。科目 57 と他の 4 タスクで枠は 61 である。4 件は 155,980.333668544 秒で、172800 秒（48 時間）に収まる。5 件は 194,975.41708568 秒で、48 時間を超える。`secondsPerExample` は親の記録に残す。`limit` の決定には使わない。測った 1 問がこの床より遅くても、`limit` は 4 のままである。パックは同じ 4 件を測る。やり直しで `limit` は変えない。48 時間は複数選択 61 枠の予算である。`wikitext` の全文は、この予算の外で測る。
 
 `gsm8k` は 5-shot の生成で、1 問がトークンごとの再読になる。BBH、LiveCodeBench、SimpleQA、Terminal-Bench、DeepSWE、HLE と画像の公式表は、長文生成か、ツールと判定モデルか、画像の塔が要る。これらはこの機械の親との比較に入れない。
 
@@ -155,17 +157,17 @@ few-shot の分割は、`hellaswag` も train である。`mmlu` はタスク定
 
 ### 親チェックポイントの測定
 
-記録の中身は `harnessCommit`、`applyChatTemplate` が false、`batchSize` が 1、`seed` が 0、`device` が `cpu`、`secondsPerExample`、`limit`、`wikitext`（`wordPerplexity`、`n`、`elapsedSeconds`）、`tasks`（上の 5 つの複数選択。各要素は `task`、`numFewshot`、`metric`、`limit`、`n`、`value`、`elapsedSeconds`）、`publishedReference`（`mmlu` 88.1、`hellaswag` 87.1、`bbh` 86.6、`liveCodeBenchBase` 37.6、`simpleQA` 33.5）である。`wordPerplexity` またはいずれかの `value` が有限でないとき、`n` が 1 未満のとき、`limit` が 1 未満のときは、記録を残さない。手元の測定のあとコミットする。クラウドはこの JSON を再計算しない。
+記録の中身は `harnessCommit`、`applyChatTemplate` が false、`batchSize` が 1、`seed` が 0、`device` が `cpu`、`secondsPerExample`、`limit`、`wikitext`（`wordPerplexity`、`n`、`elapsedSeconds`）、`tasks`（上の 5 つの複数選択。各要素は `task`、`numFewshot`、`metric`、`limit`、`n`、`value`、`elapsedSeconds`）、`publishedReference`（`mmlu` 88.1、`hellaswag` 87.1、`bbh` 86.6、`liveCodeBenchBase` 37.6、`simpleQA` 33.5）である。`wordPerplexity` またはいずれかの `value` が有限でないとき、`secondsPerExample` が有限かつ正でないとき、`limit` が 4 でないとき、各タスクの `limit` が 4 でないとき、`mmlu` の `n` が 228 でないとき、他の 4 タスクの `n` が 4 でないときは、記録を残さない。手元の測定のあとコミットする。クラウドはこの JSON を再計算しない。
 
 ### パック
 
 パックした重みを RAM に置き、5700X の CPU で因子の行列ベクトル積を計算する。同じコミット、同じ種、同じ `limit` で測る。
 
-記録は `features/nanoquant-glm/harness.json` に書き、手元の測定のあとコミットする。中身は親の記録から写した `harnessCommit`、`limit`、`seed` と、`wikitext` の `parentWordPerplexity`、`packedWordPerplexity`、`ratio`（パック÷親）、両方の `n`、`tasks` の `parentValue`、`packedValue`、`n` である。`ratio` またはパック側の値が有限でないとき、または `n` が親と違うときは、記録を残さない。ファイルが無い間はゲートはこの項を見ない。クラウドはこの JSON を再計算しない。
+記録は `features/nanoquant-glm/harness.json` に書き、手元の測定のあとコミットする。中身は親の記録から写した `harnessCommit`、`limit`、`seed` と、`wikitext` の `parentWordPerplexity`、`packedWordPerplexity`、`ratio`（パック÷親）、両方の `n`、`tasks` の `parentValue`、`packedValue`、`n` である。`ratio` またはパック側の値が有限でないとき、`n` が親と違うとき、または `limit` が 4 でないときは、記録を残さない。ファイルが無い間はゲートはこの項を見ない。クラウドはこの JSON を再計算しない。
 
 ### 品質
 
-次のどれかなら、品質は悪い。`ratio` が 3 より大きい。パックの `word_perplexity` が有限でない。複数選択で `n` が 30 以上のタスクについて、親の値からパックの値を引いた差が、親の値 `p` の `2 * sqrt(p * (1 - p) / n)` より大きい。`ratio` が 3 以下で、この差がどのタスクでもその式以下のときは、γ もビットも校正本数も変えない。`n` が 30 未満の正答率は記録し、やり直しの条件には入れない。
+次のどれかなら、品質は悪い。`ratio` が 3 より大きい。パックの `word_perplexity` が有限でない。複数選択で `n` が 30 以上のタスクについて、親の値からパックの値を引いた差が、親の値 `p` の `2 * sqrt(p * (1 - p) / n)` より大きい。`ratio` が 3 以下で、この差がどのタスクでもその式以下のときは、γ もビットも校正本数も変えない。`n` が 30 未満の正答率は記録し、やり直しの条件には入れない。この `limit` でやり直しの条件に入る複数選択は `mmlu`（`n` は 228）である。
 
 3 は、論文の Llama-2-70B で 9.82 / 3.32 が約 2.96 であることに合わせたやり直しの線である。GLM の合格値ではなく、ゲートの合否でもない。公開の 88.1 と 87.1 も合格値にしない。
 
@@ -175,9 +177,39 @@ few-shot の分割は、`hellaswag` も train である。`mmlu` はタスク定
 2. `.mlp.experts.` の `bitsPerWeightMilli` を 32 増やす。1 行列の記録は 550 とランク 704 のまま残す。増やしたあとに、分解する重みの格納バイトと残すテンソルのバイトと予約 4GiB が 32GiB を超えるときは、その変更を捨てる。超えないときは、パックの分解をやり直し、校正の対角は残す。
 3. 校正の本数を 64 または 256 にする。256 のとき隠れ状態 1 本は 4,294,967,296 バイト、全層分は 193,273,528,320 バイトである。隠れ状態 2 本と、エキスパート 32 体の FP32 3,221,225,472 バイトと、予約 4GiB を足して 32GiB を超えるとき、または親チェックポイントとパックと全層の隠れ状態が表記 932GB の空きに入らないときは、256 を捨てる。捨てないときは、校正と、誤差の吸収と、パックをやり直す。
 
-変えないものは、親チェックポイントのリポジトリ、分解する重みの範囲、ADMM の外側 400 と `reg` 0.03 と乱数種 0、ハーネスのコミット、タスク、`limit`、種である。校正をやり直すときは、その層の出力隠れ状態と対角を消してから取り直す。パックをやり直すときは、その層の完了印と完成ファイルを消してから分解し直す。
+変えないものは、親チェックポイントのリポジトリ、分解する重みの範囲、ADMM の外側 400 と `reg` 0.03 と `rho_scheduler='linear'` と乱数種 0、ハーネスのコミット、タスク、`limit`、種、実行環境の節の版、`binary_kernels` のコミットと `sm_89` と `tolerance` 0.01 である。校正をやり直すときは、その層の出力隠れ状態と対角を消してから取り直す。パックをやり直すときは、その層の完了印と完成ファイルを消してから分解し直す。
 
 記録は `features/nanoquant-glm/quality.json` である。中身は `changesApplied` が適用した変更の回数（0 以上 3 以下）、`attempts` が有限な `ratio` を持つ試行の配列である。各要素は `change`（`gamma-0.6`、`expert-bits-plus-32`、`calib-64`、`calib-256` のいずれか）、`parentWordPerplexity`、`packedWordPerplexity`、`ratio`、`tasks`（`task`、`parentValue`、`packedValue`、`n`）である。有限でない試行は配列に入れず、その回数は `changesApplied` に数える。ファイルが無い間はゲートはこの項を見ない。手元の測定のあとコミットする。クラウドはこの JSON を再計算しない。
+
+## 実行環境
+
+量子化と測定の実行は、次の版に固定する。
+
+- Python 3.12
+- `torch==2.6.0` の CUDA 12.4 ホイール（cu124）
+- CUDA toolkit 12.4（`nvcc`）
+- `transformers==5.16.1`
+- `datasets==4.0.0`
+- EleutherAI/lm-evaluation-harness のコミット `d6de81643928d653435c431bae19945d41d32520`
+- SamsungLabs/NanoQuant のコミット `a9e0a430881ff80d83b622c3129e330dc33c04f5`
+
+`Glm5NextForConditionalGeneration` は transformers 5.16.1 にある。NanoQuant の pyproject は `transformers==4.51.3` と書く。この環境は 5.16.1 を入れる。`accelerate` は 1.1.0 以上、`tokenizers` は 0.23.1 以上 0.24 未満、`safetensors` は 0.8.0 以上、`numpy` は 1.17 以上である。この 4 つは、上の等式ピンが要求する範囲のまま入れる。範囲の中の別の等式は置かない。ハーネスは上のコミットのチェックアウトであり、PyPI の `lm_eval` 0.4.9 のタスク定義は使わない。
+
+NanoQuant のチェックアウトは、`factorize_admm_nanoquant` の呼び出しと、`binary_kernels` のビルドに使う。GLM の読み込みは transformers 5.16.1 が行う。`python -m nanoquant.main`、`auto_model.py`、`load_utils.py` は GLM のローダにしない。環境とチェックアウトは git に入れず、`.tools/` にも置かない。クラウドはこの環境を作らない。
+
+## デスクトップの推論
+
+公式の `parent-benchmark.json` と `harness.json` は CPU のままである。デスクトップでパックを推論するときのカーネルは、同じ NanoQuant コミットの拡張 `binary_kernels` である。ソースはこのリポジトリへコピーしない。
+
+ビルドは `src/nanoquant/kernel` で `bash compile_kernel.sh` を実行する。`nvcc` の引数は、その `setup.py` の `-O3`、`--use_fast_math`、`-std=c++17`、`-t` `32` である。4060 の compute capability は 8.9 である。`torch.cuda.is_available()` が真で、見えている GPU の capability が 8.9 のときだけビルドする。そのとき `setup.py` が出す gencode は `compute_89` / `sm_89` だけである。GPU が無いときの gencode は `sm_80` と `sm_89` と `sm_90` である。この機械のバイナリは、4060 が見えているビルドだけを使う。CUDA toolkit は 12.4 なので、thrust は標準の include にある。
+
+README の分け方に合わせ、prefill の `kernel_type` は `gemm`、decode の `kernel_type` は `gemv` である。`gemm` の演算は `gemm_kernel.cu` の `marlin_nanoquant_forward` である。`gemv` の演算は `gemv_kernel.cu` の `nanoquant_dyn_forward` で、符号を uint32 に詰め、2 段で、Tensor Core を使わない。呼び出しの引数は、同じコミットの `_prepare_kernel` が `gemv` に渡す値である。`num_thread_stage1` 128、`num_thread_stage2` 128、`num_row_per_warp_stage1` 2、`num_row_per_warp_stage2` 2、`num_acc_stage1` 1、`num_acc_stage2` 1、`num_pipeline_stage1` 8、`num_pipeline_stage2` 8。カーネルの dtype は fp16 である。`gemlite` はこの推論に入れない。tok/s の目標値は置かない。
+
+ディスク上のパックは、パックの中身の節の、符号 8 個を 1 バイトに詰めた形のままである。カーネルへ渡す直前に、同じコミットのパッカへ変換する。`gemv` は `pack_binary_gemv` の `method="half2"`、`gemm` は `marlin_nanoquant_packer` である。パッカもこのリポジトリへコピーしない。
+
+GPU の出力をデスクトップの推論に使ってよいかは、パックのあと 1 文書で決める。文書は `wikitext` の test で、隠れ状態 2 本が 4GiB を超えない先頭の 1 文書である。CPU は公式の比較と同じ fp32 の因子積、GPU は上のカーネルである。prefill は `gemm` でその文書のトークンごとの対数尤度を出す。decode は `gemv` で、同じトークンを 1 つずつ進めた対数尤度を出す。それぞれの絶対差の最大が 0.01 以下のとき、デスクトップの推論はそのカーネルの出力を使う。どちらかが 0.01 を超えるとき、または記録が無いときは、デスクトップの推論も CPU の因子積を使う。公式の記録のデバイスは変えない。
+
+記録は `features/nanoquant-glm/kernel-check.json` に書き、手元の測定のあとコミットする。中身は `kernelCommit`、`arch` が `sm_89`、`dtype` が `float16`、`tolerance` が 0.01、`documentIndex`、`prefillKernel` が `marlin_nanoquant_forward`、`decodeKernel` が `nanoquant_dyn_forward`、`prefillMaxAbsLogprobDelta`、`decodeMaxAbsLogprobDelta` である。差が有限でないとき、`arch` が `sm_89` でないとき、`tolerance` が 0.01 でないときは、記録を残さない。差が 0.01 を超えることは、記録を捨てる理由にしない。ファイルが無い間はゲートはこの項を見ない。クラウドはこの JSON を再計算しない。
 
 ## ゲート
 
@@ -195,7 +227,7 @@ few-shot の分割は、`hellaswag` も train である。`mmlu` はタスク定
 
 1 行列の記録があるときは、別に次を見る。テンソルが層 3 エキスパート 0 の down 射影である。`rows` が 4096、`cols` が 2048、`rank` が 704、`bitsPerWeightMilli` が 550、`storedBits` が 4423680 である。`relativeError` と `continuousRelativeError` が有限である。`solverCommit` が `a9e0a430881ff80d83b622c3129e330dc33c04f5`、`seed` が 0、`device` がこの機械の GPU である。再構成誤差の大小は合否にしない。復元が非有限、フロベニウスノルムが 0、形が 4096×2048 でないときは、記録を作らない。親のシャードとパックした重みはゲートの入力にしない。クラウドはこの JSON を再計算しない。
 
-`parent-benchmark.json` があるときは、`harnessCommit` が `d6de81643928d653435c431bae19945d41d32520`、`wikitext.wordPerplexity` が有限、`wikitext.n` が 1 以上、`limit` が 1 以上、`tasks` が `mmlu`、`hellaswag`、`arc_challenge`、`winogrande`、`truthfulqa_mc2` の 5 件で、各 `value` が有限で各 `n` が 1 以上であることを見る。`harness.json` があるときは、`ratio` とパック側の値が有限で、各 `n` が親の記録と同じであることを見る。`quality.json` があるときは、`changesApplied` が 3 以下で、`attempts` の各 `ratio` が有限であることを見る。比が 3 を超えることと、正答率の差は合否にしない。ファイルが無い項は見ない。クラウドはこの JSON を再計算しない。
+`parent-benchmark.json` があるときは、`harnessCommit` が `d6de81643928d653435c431bae19945d41d32520`、`wikitext.wordPerplexity` が有限、`wikitext.n` が 1 以上、`secondsPerExample` が有限かつ正、`limit` が 4、`tasks` が `mmlu`、`hellaswag`、`arc_challenge`、`winogrande`、`truthfulqa_mc2` の 5 件で、各 `value` が有限、`mmlu` の `n` が 228、他の 4 タスクの `n` が 4 であることを見る。`harness.json` があるときは、`limit` が 4、`ratio` とパック側の値が有限で、各 `n` が親の記録と同じであることを見る。`quality.json` があるときは、`changesApplied` が 3 以下で、`attempts` の各 `ratio` が有限であることを見る。`kernel-check.json` があるときは、`kernelCommit` が `a9e0a430881ff80d83b622c3129e330dc33c04f5`、`arch` が `sm_89`、`tolerance` が 0.01、2 つの差が有限であることを見る。比が 3 を超えること、正答率の差、対数尤度の差が 0.01 を超えることは合否にしない。ファイルが無い項は見ない。クラウドはこの JSON を再計算しない。
 
 ## 失敗時に残るもの
 
