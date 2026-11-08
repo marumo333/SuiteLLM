@@ -2,3 +2,5 @@
 {"t":"2026-10-18T08:07:15.024Z","type":"node_state","cycle":"C-0001","node":"skill:harness-api-budget","state":"used"}
 {"t":"2026-10-18T09:13:27.941Z","type":"human_approved","cycle":"C-0001","merge_sha":"df34fc3c0675f6e9b2ccdbc854f7c9ef9896eff1","pr":"1"}
 {"t":"2026-10-18T09:13:28.024Z","type":"cycle_open","cycle":"C-0002","source":"after-merge","from":"C-0001"}
+{"t":"2026-10-18T10:11:40.073Z","type":"node_state","cycle":"C-0001","node":"skill:harness-api-budget","state":"used"}
+{"t":"2026-10-18T10:12:19.510Z","type":"token_ledger","cycle":"C-0001","seat":"grok","effort":"high","packet_bytes":0,"tasks":1,"zero_value_reinject":false}

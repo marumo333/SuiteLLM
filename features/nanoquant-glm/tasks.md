@@ -5,9 +5,9 @@
 - [x] 振る舞いを requirements.md に書く
 - [x] nanoquant-glm.test.mjs の失敗を、格納量の判定テストに置き換える
 - [x] テストが通るまで見積もりを実装する
-- [ ] 4096×2048 を bitsPerWeightMilli 550 で見るとランク 704、格納ビット 4423680 になることをテストする
-- [ ] 復元が非有限、またはノルムが 0 のときは再構成誤差を記録しないことをテストする
-- [ ] 層 3 エキスパート 0 の down_proj を `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` から復元し、校正なしの ADMM で `features/nanoquant-glm/one-matrix.json` を書く。親とゲートはランク、格納ビット、有限性、solverCommit、seed、device を見る。誤差の大小は合否にしない
+- [x] 4096×2048 を bitsPerWeightMilli 550 で見るとランク 704、格納ビット 4423680 になることをテストする
+- [x] 復元が非有限、またはノルムが 0 のときは再構成誤差を記録しないことをテストする
+- [x] 層 3 エキスパート 0 の down_proj を `dealignai/GLM-5.3-Flash-UNCENSORED-FP8` から復元し、校正なしの ADMM で `features/nanoquant-glm/one-matrix.json` を書く。親とゲートはランク、格納ビット、有限性、solverCommit、seed、device を見る。誤差の大小は合否にしない
 - [ ] シャードを消す前に、親で lm-evaluation-harness の `wikitext` 全文と複数選択 5 タスクを `limit` 4 で測り、`features/nanoquant-glm/parent-benchmark.json` を書く。`mmlu` の `n` は 228、他の 4 タスクの `n` は 4
 - [ ] 校正 128×2048 の対角を層ごとに取り、層単位で誤差を吸収してからテンソルごとにパックする。完成ファイルがあるテンソルは飛ばす
 - [ ] 同じタスクと `limit` 4 でパックを測り、`features/nanoquant-glm/harness.json` に `word_perplexity` の `ratio` と正答率を書く

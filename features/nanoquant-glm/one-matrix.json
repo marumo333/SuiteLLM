@@ -1,0 +1,13 @@
+{
+	"tensor": "model.language_model.layers.3.mlp.experts.0.down_proj.weight",
+	"rows": 4096,
+	"cols": 2048,
+	"rank": 704,
+	"bitsPerWeightMilli": 550,
+	"storedBits": 4423680,
+	"relativeError": 0.752181887626648,
+	"continuousRelativeError": 0.7521677613258362,
+	"solverCommit": "a9e0a430881ff80d83b622c3129e330dc33c04f5",
+	"seed": 0,
+	"device": "NVIDIA GeForce RTX 4060"
+}

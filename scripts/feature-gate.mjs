@@ -155,6 +155,11 @@ if (import.meta.url === entry) {
 		cwd: ROOT,
 		env: { ...process.env, HARNESS_ROOT: layout.dataRoot }
 	});
+	execFileSync(process.execPath, [join(layout.scriptDir, 'one-matrix-gate.mjs'), layout.dataRoot], {
+		stdio: 'inherit',
+		cwd: ROOT,
+		env: { ...process.env, HARNESS_ROOT: layout.dataRoot }
+	});
 
 	console.log('[feature-gate] 成功');
 }
