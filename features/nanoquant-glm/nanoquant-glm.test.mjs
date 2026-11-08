@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -71,6 +71,44 @@ test('復元が非有限、またはノルムが 0 のときは再構成誤差�
 	assert.equal(written.seed, 0);
 	assert.equal(written.device, 'NVIDIA GeForce RTX 4060');
 	assert.equal(existsSync(path), true);
+});
+
+test('16×32 の因子に足す表は、パックの機械を置き換えない', () => {
+	const design = readFileSync(new URL('./design.md', import.meta.url), 'utf8');
+	const vocab = 154_880;
+	const embed = vocab * 32;
+	const head = vocab * 16;
+	const factor = 16 * 32;
+	const params = embed + head + factor;
+	const bytes = params * 2;
+	const macs = 32 * 16 + 16 * vocab;
+	const requirements = readFileSync(new URL('./requirements.md', import.meta.url), 'utf8');
+	assert.equal(factor, 512);
+	assert.equal(embed, 4_956_160);
+	assert.equal(head, 2_478_080);
+	assert.equal(params, 7_434_752);
+	assert.equal(bytes, 14_869_504);
+	assert.equal(macs, 2_478_592);
+	assert.match(design, /## 16×32 の因子に表を足す場合/);
+	assert.match(design, /パックの契約を変えない/);
+	assert.match(design, /ゲートはこの節を見ない/);
+	assert.match(design, /学習も推論も開始しない/);
+	assert.match(design, /実行ファイルは足さない/);
+	assert.match(design, /因子列はこのリポジトリへ入れない/);
+	assert.match(design, /この節ではその学習を始めない/);
+	assert.match(design, /推論の実行は PyTorch である/);
+	assert.match(design, /binary_kernels` は、この形を読まない/);
+	assert.match(design, /秒数と tok\/s は未計測である/);
+	assert.match(design, /1\.958784297641366e-10/);
+	assert.match(design, /154,880/);
+	assert.match(design, /14,869,504 バイト/);
+	assert.match(design, /2,478,592 回/);
+	assert.match(design, /残差の本数/);
+	assert.match(design, /RTX 5060 Ti/);
+	assert.match(design, /NVIDIA GeForce RTX 4060 8GiB/);
+	assert.match(design, /この節はそちらを置き換えない/);
+	assert.match(design, /パックの校正手順は変えない/);
+	assert.doesNotMatch(requirements, /16×32 の因子に表を足す場合/);
 });
 
 test('e4m3 の 1 にブロック尺度を掛けると復元になる', () => {
