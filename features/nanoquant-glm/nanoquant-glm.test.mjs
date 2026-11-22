@@ -121,3 +121,52 @@ test('e4m3 の 1 にブロック尺度を掛けると復元になる', () => {
 	const restored = dequantBlock(Uint8Array.of(0x38, 0x40, 0x38, 0x30), Float32Array.of(0.5), 2, 2, 128);
 	assert.deepEqual(Array.from(restored), [0.5, 1, 0.5, 0.25]);
 });
+
+test('本番のパックのエキスパートは bitsPerWeightMilli 1043 でランク 1408', () => {
+	assert.equal(matrixRank(4096, 2048, 1043), 1408);
+	assert.equal(matrixRank(2048, 4096, 1043), 1408);
+	assert.equal(storedBits(4096, 2048, 1408), 8_749_056);
+	assert.equal(storedBits(4096, 2048, 1408) / (4096 * 2048), 1.04296875);
+	const nqBytes = 16 + (4096 * 1408) / 8 + (1408 * 2048) / 8 + 4096 * 2 + 2048 * 2;
+	assert.equal(nqBytes, 1_093_648);
+	const experts = 42 * 288 * 3;
+	assert.equal(experts, 36_288);
+	assert.equal(experts * 4096 * 2048, 304_405_807_104);
+	assert.equal(experts * nqBytes, 39_686_298_624);
+	const requirements = readFileSync(new URL('./requirements.md', import.meta.url), 'utf8');
+	assert.match(requirements, /bitsPerWeightMilli 1043 でランクにする/);
+	assert.match(requirements, /ランクを 1408、格納ビットを 8749056 とする/);
+});
+
+test('ランク 1408 の因子は Q1_0 の 128 要素のブロックに入る', () => {
+	assert.equal(1408 % 128, 0);
+	assert.equal(1408 / 128, 11);
+	const blockBytes = 2 + 128 / 8;
+	assert.equal(blockBytes, 18);
+	assert.equal((blockBytes * 8) / 128, 1.125);
+	const u = ((4096 * 1408) / 128) * blockBytes;
+	const v = ((1408 * 2048) / 128) * blockBytes;
+	const s2 = 2048 * 2;
+	assert.equal(u + v + s2, 1_220_608);
+	assert.equal((u + v + s2) * 36_288, 44_293_423_104);
+	const requirements = readFileSync(new URL('./requirements.md', import.meta.url), 'utf8');
+	assert.match(requirements, /1408 が 128 の倍数/);
+	assert.match(requirements, /1 ブロックを 18 バイト/);
+});
+
+test('本番のパックは llama.cpp の形へ変換して公開する', () => {
+	const design = readFileSync(new URL('./design.md', import.meta.url), 'utf8');
+	assert.match(design, /## 本番のパック/);
+	assert.match(design, /NQ_KEEP_NONEXPERT=1/);
+	assert.match(design, /32\.919/);
+	assert.match(design, /全層を通した比は未計測である/);
+	assert.match(design, /## llama\.cpp への変換/);
+	assert.match(design, /パックは作り直さない/);
+	assert.match(design, /`Q1_0`/);
+	assert.match(design, /llama\.cpp の実物では動かしていない/);
+	assert.match(design, /素の llama\.cpp は変換後の GGUF を読めない/);
+	assert.match(design, /39,686,298,624 バイト/);
+	assert.match(design, /44,293,423,104 バイト/);
+	assert.doesNotMatch(design, /## デスクトップの推論/);
+	assert.doesNotMatch(design, /`arch` が `sm_89`/);
+});

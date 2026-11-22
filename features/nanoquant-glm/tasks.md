@@ -13,6 +13,12 @@
 - [ ] 同じタスクと `limit` 4 でパックを測り、`features/nanoquant-glm/harness.json` に `word_perplexity` の `ratio` と正答率を書く
 - [ ] `ratio` が 3 を超えるか、件数 30 以上の正答率が標準誤差の 2 倍を超えて落ちたときは、許された変更を 1 つだけ適用して同じ入力で測り直す。3 回で止め、`features/nanoquant-glm/quality.json` に残す。この `limit` で件数 30 以上になる複数選択は `mmlu` だけである
 - [ ] 4060 が見えている状態で `binary_kernels` を `sm_89` だけに作り、`wikitext` の先頭文書で prefill と decode の対数尤度の差を `features/nanoquant-glm/kernel-check.json` に書く
+- [x] エキスパートの行列を bitsPerWeightMilli 1043 で見るとランク 1408、格納ビット 8749056 になり、1408 が 128 の倍数で `Q1_0` の 1 ブロックが 18 バイトになることをテストする
+- [ ] 本番のパック（`pack-e1408`）を層 44 と出力層まで終え、モデル全体の測りで全層を通した perplexity の比を読む
+- [ ] .nq と親のシャードから GGUF へ変換する。U と V は `Q1_0`（符号は反転、s1 は U のブロックのスケール）、s2 は別のテンソル。エキスパート以外を BF16 にするか 8 bit の型にするかを決める
+- [ ] llama.cpp に U、V、s2 の読み込み、2 回の積への置き換え、エキスパートのキャッシュの拡張を足し、ビルドする。改造した版の置き場所を決める
+- [ ] `wikitext` の先頭文書で、llama.cpp の prefill と decode の対数尤度を PyTorch の因子積と比べ、`features/nanoquant-glm/kernel-check.json` に書く
+- [ ] 照合の差が 0.01 以下のとき、人の確認のあと、GGUF、変換の手順、改造した llama.cpp の版、モデルカードを `marumo333/GLM-5.3-Flash-UNCENSORED-NanoQuant` に上げる
 
 ## 設計
 
@@ -30,3 +36,5 @@
 - [x] 複数選択の `limit` は 4。`mmlu` の `n` は 228。他の 4 タスクの `n` は 4 で、やり直しの条件には入らない
 - [x] デスクトップの推論は NanoQuant `a9e0a430` の `binary_kernels` を、4060 が見えているとき `sm_89` だけで作る。prefill は `gemm`、decode は `gemv`
 - [x] 実行は Python 3.12、torch 2.6.0 の CUDA 12.4、transformers 5.16.1、datasets 4.0.0
+- [x] 本番のパックはエキスパートだけをランク 1408（1043）で分解し、エキスパート以外は親の型のまま残す。校正は 64 本
+- [x] 推論と公開は、パックのあとで llama.cpp の形（GGUF）へ変換する。パックは作り直さない
