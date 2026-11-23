@@ -1,0 +1,16 @@
+{
+  "parent": "dealignai/GLM-5.3-Flash-UNCENSORED-FP8",
+  "source": "親の保存記録として報告された値。元の記録のファイルは手元に無い。",
+  "limit": 4,
+  "seed": 0,
+  "applyChatTemplate": false,
+  "wikitext": null,
+  "wikitextNote": "word_perplexity は残っていない。未計測として扱う。",
+  "tasks": [
+    { "task": "mmlu", "metric": "acc", "numFewshot": 5, "n": 228, "reported": "91.2%" },
+    { "task": "hellaswag", "metric": "acc_norm", "numFewshot": 10, "n": 4, "reported": "100%" },
+    { "task": "arc_challenge", "metric": "acc_norm", "numFewshot": 25, "n": 4, "reported": "50%" },
+    { "task": "winogrande", "metric": "acc", "numFewshot": 5, "n": 4, "reported": "75%" },
+    { "task": "truthfulqa_mc2", "metric": "acc", "numFewshot": 0, "n": 4, "reported": "83.0%" }
+  ]
+}
